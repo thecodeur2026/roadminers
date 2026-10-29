@@ -544,9 +544,8 @@ function goldTick() {
 function drawSpotChart() {
   const cv = $("#spot-chart");
   if (!cv || !SPOT) return;
-  const parent = cv.parentElement;
-  cv.width = parent.offsetWidth;
-  cv.height = parent.offsetHeight;
+  cv.width = innerWidth;
+  cv.height = innerHeight;
   const ctx = cv.getContext("2d");
   const w = cv.width, h = cv.height;
   ctx.clearRect(0, 0, w, h);
@@ -792,6 +791,7 @@ function registerSW() {
   setInterval(loadSpot, 300000); // rafraîchissement toutes les 5 min
   initGoldFx();                  // effet pluie d'or
   initBgFx();                    // arrière-plan animé
+  addEventListener("resize", () => drawSpotChart());
   registerSW();
   startCamera(); // la caméra s'active dès l'ouverture
 })();
