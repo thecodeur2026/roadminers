@@ -427,17 +427,23 @@ body {
 #melt-tiers { margin-top: 10px; }
 .melt-row-item {
   display: grid;
-  grid-template-columns: 1fr 92px auto 30px;
-  gap: 8px;
+  grid-template-columns: 1fr 82px 78px auto 30px;
+  gap: 6px;
   align-items: center;
   margin-bottom: 8px;
 }
 .melt-row-item select, .melt-row-item input {
-  width: 100%; padding: 11px 10px; font-size: 14px;
+  width: 100%; padding: 11px 8px; font-size: 14px;
   color: var(--text); background: var(--bg-raised);
   border: 1px solid #333; border-radius: 10px; outline: none;
 }
 .melt-row-item select:focus, .melt-row-item input:focus { border-color: var(--gold); }
+.melt-pct { color: var(--gold-light) !important; font-weight: 700; }
+.mp-sel {
+  background: rgba(212,175,55,.18);
+  border-radius: 6px; padding: 1px 5px;
+}
+.mp-sel b { color: var(--gold); }
 .melt-val {
   color: var(--gold); font-weight: 800; font-size: 13px;
   min-width: 74px; text-align: right;

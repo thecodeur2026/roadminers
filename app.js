@@ -431,7 +431,7 @@ function renderSpotTicker() {
 }
 
 /* --- Calculateur multi-matériaux --- */
-let meltRows = [{ mat: 0, grams: "" }];
+let meltRows = [{ mat: 0, grams: "", pct: 100 }];
 
 function materialOptions(selIdx) {
   return SPOT.materials
@@ -443,6 +443,10 @@ function saveMeltRows() {
   try { localStorage.setItem("roadminer_meltrows", JSON.stringify(meltRows)); } catch {}
 }
 
+function pctOptions(selPct) {
+  return PERCENTS.map((p) => `<option value="${p}"${p === selPct ? " selected" : ""}>${p} %</option>`).join("");
+}
+
 function renderMeltRows() {
   const zone = $("#melt-rows");
   zone.innerHTML = "";
@@ -452,6 +456,7 @@ function renderMeltRows() {
     div.innerHTML = `
       <select class="melt-mat" data-i="${i}" aria-label="Matériau">${materialOptions(row.mat)}</select>
       <input class="melt-g" data-i="${i}" type="number" min="0" step="0.01" placeholder="grammes" value="${row.grams}" aria-label="Grammes">
+      <select class="melt-pct" data-i="${i}" aria-label="Pourcentage">${pctOptions(row.pct ?? 100)}</select>
       <span class="melt-val" id="melt-val-${i}">—</span>
       ${meltRows.length > 1 ? `<button class="lot-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}
       <div class="melt-pcts" id="melt-pcts-${i}"></div>`;
@@ -460,6 +465,12 @@ function renderMeltRows() {
   zone.querySelectorAll(".melt-mat").forEach((s) =>
     s.addEventListener("change", (e) => {
       meltRows[+e.target.dataset.i].mat = +e.target.value;
+      saveMeltRows();
+      updateMeltV2();
+    }));
+  zone.querySelectorAll(".melt-pct").forEach((s) =>
+    s.addEventListener("change", (e) => {
+      meltRows[+e.target.dataset.i].pct = +e.target.value;
       saveMeltRows();
       updateMeltV2();
     }));
@@ -499,47 +510,55 @@ function meltRowValue(row) {
   const g = parseFloat(row.grams) || 0;
   const tier = m.tiers.reduce((best, t) => (g >= t.min_g ? t : best), m.tiers[0]);
   const per = tier.individual; // référence : prix NON-WHOLESALE Kitco
-  return { per, val: per * g, g };
+  const pct = row.pct ?? 100;
+  return { per, pct, val100: per * g, val: per * g * pct / 100, g };
 }
 
 function updateMeltV2() {
   if (!SPOT || !SPOT.materials || !SPOT.materials.length) return;
-  let total = 0, anyVal = false, details = [];
+  let total = 0, total100 = 0, anyVal = false, details = [];
   meltRows.forEach((row, i) => {
-    const { per, val, g } = meltRowValue(row);
+    const { per, pct, val, val100, g } = meltRowValue(row);
     const span = $("#melt-val-" + i);
     if (span) {
-      // prix AU GRAMME toujours visible ; total de la ligne dès qu'un poids est entré
-      span.innerHTML = val > 0
-        ? `${fmt(val)}<small>${fmt(per)}/g</small>`
+      // prix AU GRAMME toujours visible ; valeur de la ligne au % choisi
+      span.innerHTML = val100 > 0
+        ? `${fmt(val)}<small>${fmt(per)}/g · ${pct} %</small>`
         : `<small>${fmt(per)}/g</small>`;
     }
-    // pourcentages à côté de chaque ligne
+    // pourcentages de référence sous chaque ligne (le % choisi est mis en avant)
     const pcts = $("#melt-pcts-" + i);
     if (pcts) {
-      pcts.innerHTML = val > 0
+      pcts.innerHTML = val100 > 0
         ? PERCENTS.map((p) =>
-            `<span class="mp"><b>${p} %</b> ${fmt(val * p / 100)}</span>`).join("")
+            `<span class="mp${p === pct ? " mp-sel" : ""}"><b>${p} %</b> ${fmt(val100 * p / 100)}</span>`).join("")
         : "";
     }
-    if (val > 0) {
+    if (val100 > 0) {
       anyVal = true;
-      details.push(`${fmt(per)}/g × ${g} g`);
+      details.push(`${fmt(per)}/g × ${g} g × ${pct} %`);
     }
     total += val;
+    total100 += val100;
   });
   $("#melt-result").innerHTML = anyVal
-    ? `<span class="melt-total-label">TOTAL (100 % = prix Non-Wholesale Kitco)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
+    ? `<span class="melt-total-label">TOTAL À PAYER (vos % par article)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
     : `Entrez le poids en grammes de chaque matériau.`;
   const tiers = $("#melt-tiers");
   tiers.innerHTML = "";
   if (anyVal) {
     if (total !== updateMeltV2._lastTotal) goldBurst(); // pluie d'or
     updateMeltV2._lastTotal = total;
+    // référence : ce que vaudrait le lot à 100 % Kitco, avec les paliers
+    const ref = document.createElement("p");
+    ref.className = "hint-note";
+    ref.style.cssText = "margin:8px 0 4px;grid-column:1/-1";
+    ref.textContent = `Référence 100 % Non-Wholesale Kitco : ${fmt(total100)} — paliers sur cette base :`;
+    tiers.appendChild(ref);
     for (const p of PERCENTS) {
       const div = document.createElement("div");
       div.className = "tier" + (p === 100 ? " full" : "");
-      div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total * p / 100)}</span>`;
+      div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total100 * p / 100)}</span>`;
       tiers.appendChild(div);
     }
   } else {
