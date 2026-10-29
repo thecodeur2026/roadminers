@@ -256,7 +256,7 @@ async function startCamera() {
   } catch (err) {
     console.warn("caméra", err);
     $("#cam-off").style.display = "grid";
-    toast("Caméra inaccessible — utilisez localhost ou HTTPS");
+    toast("Caméra inaccessible — vérifiez les permissions du navigateur");
   }
 }
 
@@ -405,13 +405,18 @@ async function loadSpot() {
 function renderSpotTicker() {
   const el = $("#spot-ticker");
   if (!SPOT || !SPOT.spot) { el.innerHTML = ""; return; }
+  let when = "";
+  if (SPOT.updated) {
+    const d = new Date(SPOT.updated);
+    if (!isNaN(d)) when = " · " + d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
   el.innerHTML = METAL_LABELS.map(([k, label]) => {
     const m = SPOT.spot[k];
     if (!m || !m.usd_oz) return "";
     return `<div class="spot-chip"><span class="spot-name">${label}</span>
       <span class="spot-usd">${fmt(m.usd_oz)} <small>US/oz</small></span>
       <span class="spot-cad">${fmt(m.cad_oz)} <small>CA/oz</small></span></div>`;
-  }).join("") + `<div class="spot-when">Cours en direct${SPOT.updated ? " · " + SPOT.updated.slice(0, 16).replace("T", " ") : ""}</div>`;
+  }).join("") + `<div class="spot-when">Cours en direct${when}</div>`;
 }
 
 function initMeltV2() {
