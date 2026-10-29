@@ -507,7 +507,12 @@ function updateMeltV2() {
   meltRows.forEach((row, i) => {
     const { per, val, g } = meltRowValue(row);
     const span = $("#melt-val-" + i);
-    if (span) span.textContent = val > 0 ? fmt(val) : "—";
+    if (span) {
+      // prix AU GRAMME toujours visible ; total de la ligne dès qu'un poids est entré
+      span.innerHTML = val > 0
+        ? `${fmt(val)}<small>${fmt(per)}/g</small>`
+        : `<small>${fmt(per)}/g</small>`;
+    }
     // pourcentages à côté de chaque ligne
     const pcts = $("#melt-pcts-" + i);
     if (pcts) {

@@ -441,6 +441,10 @@ body {
 .melt-val {
   color: var(--gold); font-weight: 800; font-size: 13px;
   min-width: 74px; text-align: right;
+  display: flex; flex-direction: column; line-height: 1.2;
+}
+.melt-val small {
+  color: var(--text-dim); font-weight: 600; font-size: 10.5px;
 }
 .btn-add { width: 100%; margin: 4px 0 10px; }
 .melt-pcts {
