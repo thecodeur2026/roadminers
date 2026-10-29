@@ -425,6 +425,24 @@ body {
   color: var(--text-dim); font-size: 11px; text-align: right;
 }
 #melt-tiers { margin-top: 10px; }
+.melt-row-item {
+  display: grid;
+  grid-template-columns: 1fr 92px auto 30px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.melt-row-item select, .melt-row-item input {
+  width: 100%; padding: 11px 10px; font-size: 14px;
+  color: var(--text); background: var(--bg-raised);
+  border: 1px solid #333; border-radius: 10px; outline: none;
+}
+.melt-row-item select:focus, .melt-row-item input:focus { border-color: var(--gold); }
+.melt-val {
+  color: var(--gold); font-weight: 800; font-size: 13px;
+  min-width: 74px; text-align: right;
+}
+.btn-add { width: 100%; margin: 4px 0 10px; }
 
 /* ----- Modal identification ----- */
 .picker {

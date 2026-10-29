@@ -45,36 +45,26 @@
       </div>
     </div>
 
-    <h3 class="section-title">Lot en cours (<span id="lot-count">0</span>)</h3>
-    <p class="hint-note" id="lot-hint">Photographiez les pièces/billets, puis touchez chaque photo pour l'identifier dans la base de données.</p>
+    <h3 class="section-title">Évaluation du lot (<span id="lot-count">0</span>) — photos, cours &amp; fonte</h3>
+    <p class="hint-note" id="lot-hint">Photographiez les articles, identifiez-les, et entrez les matériaux (ex. chaîne 10K + chaîne 14K + argent sterling) pour le prix total.</p>
     <div id="lot-list" class="lot-list"></div>
 
+    <div class="spot-grid" id="spot-ticker"></div>
+
+    <div class="melt-card">
+      <canvas id="gold-fx"></canvas>
+      <div id="melt-rows"></div>
+      <button class="btn-outline btn-add" id="btn-add-material">&#10010; Ajouter un matériau</button>
+      <p class="melt-result" id="melt-result">Total : —</p>
+      <div class="tiers" id="melt-tiers"></div>
+      <p class="hint-note" id="melt-source">Source : prix d'achat maximum Kitco (CAD) selon la contenance, cours en direct.</p>
+    </div>
+
     <div id="lot-totals-zone" hidden>
-      <h3 class="section-title">Total du lot selon le pourcentage</h3>
+      <h3 class="section-title">Total des articles identifiés selon le pourcentage</h3>
       <div class="tiers" id="lot-tiers"></div>
       <button class="btn-gold btn-save" id="btn-save-lot">Enregistrer le lot</button>
       <button class="btn-outline" id="btn-clear-lot" style="width:100%;margin-top:8px">Vider le lot</button>
-    </div>
-
-    <h3 class="section-title">Cours en direct & calculateur de fonte</h3>
-    <div class="spot-grid" id="spot-ticker"></div>
-
-    <h3 class="section-title" style="margin-top:14px">Prix d'achat max / gramme</h3>
-    <div class="melt-card">
-      <canvas id="gold-fx"></canvas>
-      <div class="melt-row">
-        <div class="melt-field melt-grow">
-          <label for="melt-material">Matériau</label>
-          <select id="melt-material"></select>
-        </div>
-        <div class="melt-field melt-qty">
-          <label for="melt-grams">Grammes</label>
-          <input type="number" id="melt-grams" min="0" step="0.01" placeholder="0.00">
-        </div>
-      </div>
-      <p class="melt-result" id="melt-result">Valeur : —</p>
-      <div class="tiers" id="melt-tiers"></div>
-      <p class="hint-note" id="melt-source">Source : prix d'achat maximum Kitco (CAD) selon la contenance, cours en direct.</p>
     </div>
   </section>
 

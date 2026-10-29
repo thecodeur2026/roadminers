@@ -430,40 +430,97 @@ function renderSpotTicker() {
   }).join("") + `<div class="spot-when">Cours en direct${when}</div>`;
 }
 
+/* --- Calculateur multi-matériaux --- */
+let meltRows = [{ mat: 0, grams: "" }];
+
+function materialOptions(selIdx) {
+  return SPOT.materials
+    .map((m, i) => `<option value="${i}"${i === selIdx ? " selected" : ""}>${m.name}</option>`)
+    .join("");
+}
+
+function saveMeltRows() {
+  try { localStorage.setItem("roadminer_meltrows", JSON.stringify(meltRows)); } catch {}
+}
+
+function renderMeltRows() {
+  const zone = $("#melt-rows");
+  zone.innerHTML = "";
+  meltRows.forEach((row, i) => {
+    const div = document.createElement("div");
+    div.className = "melt-row-item";
+    div.innerHTML = `
+      <select class="melt-mat" data-i="${i}" aria-label="Matériau">${materialOptions(row.mat)}</select>
+      <input class="melt-g" data-i="${i}" type="number" min="0" step="0.01" placeholder="grammes" value="${row.grams}" aria-label="Grammes">
+      <span class="melt-val" id="melt-val-${i}">—</span>
+      ${meltRows.length > 1 ? `<button class="lot-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}`;
+    zone.appendChild(div);
+  });
+  zone.querySelectorAll(".melt-mat").forEach((s) =>
+    s.addEventListener("change", (e) => {
+      meltRows[+e.target.dataset.i].mat = +e.target.value;
+      saveMeltRows();
+      updateMeltV2();
+    }));
+  zone.querySelectorAll(".melt-g").forEach((s) =>
+    s.addEventListener("input", (e) => {
+      meltRows[+e.target.dataset.i].grams = e.target.value;
+      saveMeltRows();
+      updateMeltV2();
+    }));
+  zone.querySelectorAll(".melt-del").forEach((b) =>
+    b.addEventListener("click", (e) => {
+      meltRows.splice(+e.target.dataset.i, 1);
+      saveMeltRows();
+      renderMeltRows();
+      updateMeltV2();
+    }));
+}
+
 function initMeltV2() {
-  const sel = $("#melt-material");
-  sel.innerHTML = "";
   if (!SPOT || !SPOT.materials || !SPOT.materials.length) {
-    sel.innerHTML = "<option>Cours indisponibles</option>";
     $("#melt-result").textContent = "Cours indisponibles — vérifiez la connexion.";
     return;
   }
-  SPOT.materials.forEach((m, i) => {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = m.name;
-    sel.appendChild(opt);
-  });
-  sel.onchange = updateMeltV2;
-  $("#melt-grams").oninput = updateMeltV2;
+  try {
+    const saved = JSON.parse(localStorage.getItem("roadminer_meltrows"));
+    if (Array.isArray(saved) && saved.length && !initMeltV2._restored) {
+      meltRows = saved;
+      initMeltV2._restored = true;
+    }
+  } catch {}
+  if (!$("#melt-rows").children.length) renderMeltRows();
   updateMeltV2();
+}
+
+function meltRowValue(row) {
+  const m = SPOT.materials[row.mat] || SPOT.materials[0];
+  const g = parseFloat(row.grams) || 0;
+  const tier = m.tiers.reduce((best, t) => (g >= t.min_g ? t : best), m.tiers[0]);
+  return { per: tier.wholesale, val: tier.wholesale * g, g };
 }
 
 function updateMeltV2() {
   if (!SPOT || !SPOT.materials || !SPOT.materials.length) return;
-  const m = SPOT.materials[parseInt($("#melt-material").value, 10) || 0];
-  const g = parseFloat($("#melt-grams").value) || 0;
-  const tier = m.tiers.reduce((best, t) => (g >= t.min_g ? t : best), m.tiers[0]);
-  const per = tier.wholesale;
-  const total = per * g;
-  $("#melt-result").innerHTML = g > 0
-    ? `Prix d'achat max : <strong>${fmt(total)}</strong><br><span class="hint-note">${fmt(per)}/g × ${g} g${tier.min_g ? ` · palier ${tier.min_g.toLocaleString("fr-CA")} g et +` : ""}</span>`
-    : `Prix d'achat max : <strong>${fmt(per)} / gramme</strong> — entrez le poids en grammes.`;
+  let total = 0, anyVal = false, details = [];
+  meltRows.forEach((row, i) => {
+    const { per, val, g } = meltRowValue(row);
+    const span = $("#melt-val-" + i);
+    if (span) span.textContent = val > 0 ? fmt(val) : "—";
+    if (val > 0) {
+      anyVal = true;
+      details.push(`${fmt(per)}/g × ${g} g`);
+    }
+    total += val;
+  });
+  $("#melt-result").innerHTML = anyVal
+    ? `Total prix d'achat max : <strong>${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
+    : `Entrez le poids en grammes de chaque matériau.`;
   const tiers = $("#melt-tiers");
   tiers.innerHTML = "";
-  if (g > 0) {
-    if (g !== updateMeltV2._lastG) goldBurst(); // pluie d'or à chaque saisie
-    updateMeltV2._lastG = g;
+  if (anyVal) {
+    if (total !== updateMeltV2._lastTotal) goldBurst(); // pluie d'or
+    updateMeltV2._lastTotal = total;
     for (const p of PERCENTS) {
       const div = document.createElement("div");
       div.className = "tier" + (p === 100 ? " full" : "");
@@ -471,7 +528,7 @@ function updateMeltV2() {
       tiers.appendChild(div);
     }
   } else {
-    updateMeltV2._lastG = 0;
+    updateMeltV2._lastTotal = 0;
   }
 }
 
@@ -753,6 +810,13 @@ function bindEvents() {
   $("#btn-save-lot").addEventListener("click", saveLot);
   $("#btn-clear-lot").addEventListener("click", () => {
     if (confirm("Vider le lot en cours ?")) { lot = []; renderLot(); }
+  });
+  $("#btn-add-material").addEventListener("click", () => {
+    meltRows.push({ mat: 0, grams: "" });
+    renderMeltRows();
+    updateMeltV2();
+    const inputs = document.querySelectorAll(".melt-g");
+    if (inputs.length) inputs[inputs.length - 1].focus();
   });
 
   // modal identification
