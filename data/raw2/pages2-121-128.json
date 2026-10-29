@@ -1,0 +1,51 @@
+{
+  "entries": [
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, EIIR, tête nue/Flames de Calgary (coloriée); Tirage: 5 721; Prix d'émission: 29,95", "price": 35.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Oilers d'Edmonton (coloriée); Tirage: 5 772; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Canadiens de Montréal (coloriée); Tirage: 5 963; Prix d'émission: 29,95", "price": 40.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Sénateurs d'Ottawa (coloriée); Tirage: 5 810; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Canucks de Vancouver (coloriée); Tirage: 5 969; Prix d'émission: 29,95", "price": 35.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Jets de Winnipeg (coloriée); Tirage: 5 986; Prix d'émission: 29,95", "price": 35.00},
+    {"page": 121, "section": "MONNAIES DE COLLECTION", "category": "Ligue nationale de hockey", "series": "", "date": "2014", "description": "25 ¢, Winnipeg Jets (coloriée); Tirage: 5 925; Prix d'émission: 29,95", "price": 35.00},
+
+    {"page": 122, "section": "MONNAIES DE COLLECTION", "category": "Le Canada hanté", "series": "", "date": "2014", "description": "25 ¢, EIIR, tête nue/Mariée fantôme (lenticulaire, coloriée); Tirage: 15 000; Prix d'émission: 29,95", "price": 75.00},
+    {"page": 122, "section": "MONNAIES DE COLLECTION", "category": "Le Canada hanté", "series": "", "date": "2015", "description": "25 ¢, Le serre-frein (lenticulaire, coloriée); Tirage: 15 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 122, "section": "MONNAIES DE COLLECTION", "category": "Le Canada hanté", "series": "", "date": "2016", "description": "25 ¢, Île Bell; Tirage: 20 000; Prix d'émission: 31,95", "price": 32.00},
+
+    {"page": 123, "section": "MONNAIES DE COLLECTION", "category": "Émissions diverses", "series": "", "date": "2016", "description": "25 ¢, Star Trek, Enterprise (coloriée); Tirage: 30 000; Prix d'émission: 34,95", "price": 35.00},
+    {"page": 123, "section": "MONNAIES DE COLLECTION", "category": "Émissions diverses", "series": "", "date": "2019", "description": "25 ¢, 100e anniversaire du CN (coloriée); Tirage: 30 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 123, "section": "MONNAIES DE COLLECTION", "category": "La Ligue des Justiciers", "series": "", "date": "2018", "description": "25 ¢, La Ligue des Justiciersᴹᶜ (lenticulaire); Tirage: 2 500; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 123, "section": "MONNAIES DE COLLECTION", "category": "Dinosaures du Canada", "series": "", "date": "2019", "description": "25 ¢, Dinosaures du Canada, Ensemble (3 pièces) [MRC # 172192]; Tirage: 100 000; Prix d'émission: 19,95", "price": 20.00},
+
+    {"page": 124, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Elizabeth II, tête nue/Armoiries", "date": "2012", "description": "50 ¢, EIIR, tête nue/Armoiries; Tirage: 27 254; Prix d'émission: N.V.S.", "price": 20.00},
+    {"page": 124, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Elizabeth II, tête nue/Armoiries", "date": "2013", "description": "Aucun ensemble épreuve numismatique émis", "price": null},
+    {"page": 124, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Elizabeth II, tête nue/Armoiries", "date": "2014", "description": "50 ¢, Armoiries; Tirage: 11 251; Prix d'émission: N.V.S.", "price": 20.00},
+    {"page": 124, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Elizabeth II, tête nue/Armoiries", "date": "2015", "description": "50 ¢, Armoiries; Tirage: 20 000; Prix d'émission: N.V.S.", "price": 20.00},
+    {"page": 124, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Elizabeth II, tête nue/Armoiries", "date": "2016", "description": "50 ¢, Armoiries; Tirage: 20 000; Prix d'émission: N.V.S.", "price": 20.00},
+
+    {"page": 125, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2007(M)", "description": "50 ¢, EIIR, tête nue/Boules de Noël (lenticulaire); Tirage: 16 989; Prix d'émission: 25,95", "price": 45.00},
+    {"page": 125, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2008(M)", "description": "50 ¢, Bonhomme de neige (lenticulaire); Tirage: 21 679; Prix d'émission: 25,95", "price": 45.00},
+    {"page": 125, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2009", "description": "50 ¢, Train (lenticulaire); Tirage: 19 103; Prix d'émission: 25,95", "price": 45.00},
+    {"page": 125, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2010", "description": "50 ¢, Père Noël et renne (lenticulaire); Tirage: 21 394; Prix d'émission: 26,95", "price": 30.00},
+    {"page": 125, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2011", "description": "50 ¢, Père Noël et traîneau (lenticulaire); Tirage: 21 837; Prix d'émission: 26,95", "price": 30.00},
+
+    {"page": 126, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2012", "description": "50 ¢, Père Noël (lenticulaire); Tirage: 25 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 126, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2013", "description": "50 ¢, Bonhomme de neige (lenticulaire); Tirage: 20 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 126, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2014", "description": "50 ¢, Arbre de Noël (lenticulaire); Tirage: 20 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 126, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2015", "description": "50 ¢, Coffre à jouets des Fêtes (lenticulaire); Tirage: 30 000; Prix d'émission: 29,95", "price": 30.00},
+
+    {"page": 127, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2016", "description": "50 ¢, Anges dans la neige (lenticulaire); Tirage: 26 000; Prix d'émission: 29,95", "price": 30.00},
+    {"page": 127, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Temps des Fêtes", "date": "2018", "description": "50 ¢, Bataille de boules de neige (lenticulaire); Tirage: 20 000; Prix d'émission: 29,95", "price": 30.00},
+
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Flames de Calgary (lenticulaire); Tirage: 270; Prix d'émission: 24,95", "price": 100.00},
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Oilers d'Edmonton (lenticulaire); Tirage: 248; Prix d'émission: 24,95", "price": 100.00},
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Canadiens de Montréal (lenticulaire); Tirage: 1 266; Prix d'émission: 24,95", "price": 100.00},
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Sénateurs d'Ottawa (lenticulaire); Tirage: 310; Prix d'émission: 24,95", "price": 100.00},
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Maple Leafs de Toronto (lenticulaire); Tirage: 606; Prix d'émission: 24,95", "price": 100.00},
+    {"page": 128, "section": "MONNAIES DE COLLECTION", "category": "50 CENTS", "series": "Ligue nationale de hockey", "date": "2009(M)", "description": "50 ¢, Canucks de Vancouver (lenticulaire); Tirage: 318; Prix d'émission: 24,95", "price": 100.00}
+  ],
+  "notes": [
+    {"page": 121, "text": "Les pièces de la Ligue nationale de hockey n'étaient disponibles que dans les ensembles philatélo-numismatiques."},
+    {"page": 128, "text": "These National Hockey League coins were only available in NHL pucks, one for each Canadian team. (Le tableau continue à la page suivante, hors de l'intervalle assigné.)"}
+  ]
+}

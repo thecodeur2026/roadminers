@@ -1,0 +1,53 @@
+{
+  "entries": [
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Appel de la nature","date":"2014","description":"125 $, EIIR, tête nue/Loup; Tirage: 1 000; Prix d'émission: 1 099,95","price":1100.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Appel de la nature","date":"2015","description":"125 $, Couguar; Tirage: 1 000; Prix d'émission: 1 099,95","price":1100.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Appel de la nature","date":"2016","description":"125 $, Grizzli; Tirage: 1 000; Prix d'émission: 1 099,95","price":1100.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Appel de la nature","date":"2017","description":"125 $, Wapiti; Tirage: 1 000; Prix d'émission: 1 099,95","price":1250.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Conservation","date":"2015","description":"125 $, EIIR, tête nue/Grue blanche; Tirage: 500; Prix d'émission: 1 099,95","price":1100.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Conservation","date":"2015","description":"125 $, Renard gris; Tirage: 500; Prix d'émission: 1 099,95","price":1100.00},
+    {"page":449,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Conservation","date":"2015","description":"125 $, Narval; Tirage: 500; Prix d'émission: 1 099,95","price":1100.00},
+
+    {"page":450,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Émission diverse","date":"2016","description":"125 $, EIIR, tête nue (scan flou, tableau illisible); Tirage: ND","price":null,"uncertain":true},
+    {"page":450,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Thème Dragon","date":"2016","description":"125 $, EIIR, tête nue/Dragon; Tirage: 588; Prix d'émission: 1 088,88 (scan flou)","price":1100.00,"uncertain":true},
+    {"page":450,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Thème Dragon","date":"2020","description":"125 $, Dragon (coloriée); Tirage: 888; Prix d'émission: 1 088,88 (scan flou)","price":2290.00,"uncertain":true},
+    {"page":450,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Thème Dragon","date":"2021","description":"125 $, Dragon (coloriée); Tirage: 888; Prix d'émission: 1 088,88 (scan flou)","price":1100.00,"uncertain":true},
+
+    {"page":451,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Émissions diverses","date":"2019","description":"125 $, EIIR, tête nue/75e anniversaire de la campagne de Normandie : Opération Tonga; Tirage: 500; Prix d'émission: 1 249,95","price":1250.00},
+    {"page":451,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Émissions diverses","date":"2019","description":"125 $, Prédateurs féroces : Le grizzli; Tirage: 400; Prix d'émission: 1 199,95","price":1200.00},
+    {"page":451,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Émissions diverses","date":"2020","description":"125 $, Grands voiliers du Canada (enluminée d'or); Tirage: 500; Prix d'émission: 1 299,95","price":1300.00},
+    {"page":451,"section":"MONNAIES DE COLLECTION","category":"125 DOLLARS","series":"Émissions diverses","date":"2020","description":"125 $, 75e anniversaire de l'UNESCO (enluminée d'or); Tirage: 300; Prix d'émission: 1 299,95","price":1300.00},
+
+    {"page":452,"section":"MONNAIES DE COLLECTION","category":"200 DOLLARS","series":"Pièces en or pur et en argent fin","date":"2019","description":"200 $, EIIR, tête nue/Le yin et le yang; Tirage: 288; Prix d'émission: 2 888,88","price":2889.00},
+
+    {"page":453,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2007","description":"250 $, EIIR, tête nue/Canada à ses débuts; Tirage: 2 500; Prix d'émission: 1 299,95","price":1900.00},
+    {"page":453,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2008","description":"250 $, Naissance de la Confédération; Tirage: 2 500; Prix d'émission: 1 299,95","price":1950.00},
+    {"page":453,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2009","description":"250 $, Déluge; Tirage: 815; Prix d'émission: 1 299,95","price":1900.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2009","description":"250 $, Canada d'aujourd'hui; Tirage: 905; Prix d'émission: 1 299,95","price":1900.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2010","description":"250 $, Aigle (ÉN); Tirage: 349; Prix d'émission: 1 299,95","price":2000.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2010","description":"250 $, Aigle (oxydée); Tirage: 349; Prix d'émission: 1 299,95","price":2000.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Olympiques d'hiver 2010","date":"2010","description":"250 $, Aigle (émaillée); Tirage: 74; Prix d'émission: 1 299,95","price":2000.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2010","description":"250 $, EIIR, tête nue/Banff; Tirage: 525; Prix d'émission: 1 649,95","price":2000.00},
+    {"page":454,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2011","description":"250 $, La crosse; Tirage: 591; Prix d'émission: 2 195,95","price":2200.00},
+
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2012","description":"250 $, EIIR, tête nue/Orignal; Tirage: 591; Prix d'émission: 2 249,95","price":2250.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2013","description":"250 $, Paysages arctique; Tirage: 320; Prix d'émission: 2 249,95","price":2250.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2013","description":"250 $, Guerre de Sept ans; Tirage: 179; Prix d'émission: 2 249,95","price":2250.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2013","description":"250 $, Caribou; Tirage: 146; Prix d'émission: 2 249,95","price":2200.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2015","description":"250 $, Bugs Bunny (émaillée); Tirage: 750; Prix d'émission: 2 350,95","price":2350.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2016","description":"250 $, Armoiries (enluminée d'or); Tirage: 400; Prix d'émission: 2 299,95","price":2330.00},
+    {"page":455,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Émission diverses","date":"2017","description":"250 $, Monnaies canadiennes (oxydé); Tirage: ND; Prix d'émission: 2 499,95","price":2500.00},
+
+    {"page":456,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Calendrier chinois","date":"2012","description":"250 $, EIIR, tête nue/Année du Dragon; Tirage: 1 616; Prix d'émission: 2 195,95","price":2250.00},
+    {"page":456,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Calendrier chinois","date":"2013","description":"250 $, EIIR, tête nue/Année du Serpent; Tirage: 359; Prix d'émission: 1 649,95","price":2250.00},
+    {"page":456,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Calendrier chinois","date":"2014","description":"250 $, Année du Cheval; Tirage: 469; Prix d'émission: 2 249,95","price":2250.00},
+    {"page":456,"section":"MONNAIES DE COLLECTION","category":"250 DOLLARS","series":"Calendrier chinois","date":"2015","description":"250 $, Année du Mouton (coloriée); Tirage: 388; Prix d'émission: 2 288,88","price":2300.00}
+  ],
+  "notes": [
+    {"page":449,"text":"Série Conservation — Diamètre: 85,00 mm; Argent 99,99 %; Poids: 500,00 g; Tranche: Dentelée."},
+    {"page":450,"text":"Page 450 très floue (flou de mouvement du scan) : le tableau « Émission diverse » (1 rangée, 2016) est illisible et les 3 rangées « Thème Dragon » sont transcrites au mieux avec drapeau uncertain."},
+    {"page":451,"text":"Émissions diverses 125 $ — Diamètre: 85,45 mm; Argent 99,99 %; Poids: 502,99 g; Tranche: Dentelée."},
+    {"page":452,"text":"Le yin et le yang — Diamètre: 39,00 mm; Argent 99,99 % 15,87 g + Or 99,99 % 29,00 g; Tranche: Dentelée."},
+    {"page":453,"text":"250 $ Olympiques d'hiver 2010 — Diamètre: 101,60 mm; Argent 99,99 %; Poids: 1 000,00 g; Tranche: Lisse."}
+  ]
+}

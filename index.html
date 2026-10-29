@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ROAD MINERS — Scanner & Évaluation</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-mark">R</div>
+  <div class="logo-text">
+    <span class="logo-road">ROAD</span> <span class="logo-miner">MINERS</span>
+    <small>TRADE &bull; VALUE &bull; SECURITY</small>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============ VUE SCANNER (par défaut) ============ -->
+  <section id="view-scan" class="view active">
+
+    <div class="cam-frame">
+      <video id="cam" autoplay playsinline muted></video>
+      <div class="cam-off" id="cam-off">
+        <p>Caméra inactive</p>
+        <button class="btn-gold" id="btn-cam-on">Activer la caméra</button>
+      </div>
+    </div>
+
+    <div class="cam-actions">
+      <button class="btn-capture" id="btn-capture" aria-label="Capturer">&#9679;</button>
+    </div>
+
+    <div class="spot-ticker" id="spot-ticker"></div>
+
+    <h3 class="section-title">Lot en cours (<span id="lot-count">0</span>)</h3>
+    <p class="hint-note" id="lot-hint">Photographiez les pièces/billets, puis touchez chaque photo pour l'identifier dans la base de données.</p>
+    <div id="lot-list" class="lot-list"></div>
+
+    <div id="lot-totals-zone" hidden>
+      <h3 class="section-title">Total du lot selon le pourcentage</h3>
+      <div class="tiers" id="lot-tiers"></div>
+      <button class="btn-gold btn-save" id="btn-save-lot">Enregistrer le lot</button>
+      <button class="btn-outline" id="btn-clear-lot" style="width:100%;margin-top:8px">Vider le lot</button>
+    </div>
+
+    <h3 class="section-title">Calculateur de fonte — prix d'achat max / gramme</h3>
+    <div class="melt-card">
+      <div class="melt-row">
+        <div class="melt-field melt-grow">
+          <label for="melt-material">Matériau</label>
+          <select id="melt-material"></select>
+        </div>
+        <div class="melt-field melt-qty">
+          <label for="melt-grams">Grammes</label>
+          <input type="number" id="melt-grams" min="0" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <p class="melt-result" id="melt-result">Valeur : —</p>
+      <div class="tiers" id="melt-tiers"></div>
+      <p class="hint-note" id="melt-source">Source : prix d'achat maximum Kitco (CAD) selon la contenance, cours en direct.</p>
+    </div>
+  </section>
+
+  <!-- ============ VUE RECHERCHE ============ -->
+  <section id="view-search" class="view">
+    <div class="search-box">
+      <input type="search" id="search-input"
+             placeholder="Rechercher : date, dénomination, pays, série&hellip;"
+             autocomplete="off">
+      <button id="btn-clear" class="btn-clear" aria-label="Effacer">&times;</button>
+    </div>
+
+    <div class="quick-hints" id="quick-hints">
+      <p class="hint-title">Exemples de recherche</p>
+      <div class="hint-chips">
+        <button class="chip" data-q="1861 half cent">1861 half cent</button>
+        <button class="chip" data-q="New Brunswick">New Brunswick</button>
+        <button class="chip" data-q="five cents victoria">Five Cents Victoria</button>
+        <button class="chip" data-q="gold louis">Gold Louis</button>
+        <button class="chip" data-q="morgan dollar">Morgan Dollar</button>
+      </div>
+      <p class="hint-note">Badge vert « ON PREND » = prix d'achat du guide. Badge or « VALEUR CATALOGUE » = valeur marchande du catalogue. Si l'article n'apparaît nulle part, on ne le prend pas.</p>
+    </div>
+
+    <ul id="results" class="results"></ul>
+    <p id="results-count" class="results-count"></p>
+  </section>
+
+  <!-- ============ VUE DÉTAIL ============ -->
+  <section id="view-detail" class="view">
+    <button class="btn-back" id="btn-back">&larr; Retour</button>
+
+    <div id="detail-card" class="detail-card">
+      <div class="verdict" id="verdict">ON PREND</div>
+      <h2 id="detail-title"></h2>
+      <p class="detail-ref" id="detail-ref"></p>
+      <p class="detail-price"><span id="detail-price-label">Prix d'achat du guide</span> : <strong id="detail-price"></strong></p>
+    </div>
+
+    <a id="guide-page-link" class="btn-outline" style="display:block;margin-top:12px" href="#" target="_blank" rel="noopener">
+      Voir la page du livre (photos des pièces) &nearr;
+    </a>
+
+    <h3 class="section-title">Prix selon le pourcentage</h3>
+    <div class="tiers" id="tiers"></div>
+
+    <h3 class="section-title">Photo de l'article</h3>
+    <div class="photo-zone">
+      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
+      <button class="btn-gold" id="btn-photo">Prendre / choisir une photo</button>
+      <img id="photo-preview" class="photo-preview" alt="Photo de l'article" hidden>
+    </div>
+
+    <h3 class="section-title">Prix réel (PriceCharting)</h3>
+    <div class="realprice-zone">
+      <a id="pricecharting-link" class="btn-outline" href="#" target="_blank" rel="noopener">
+        Voir sur PriceCharting &nearr;
+      </a>
+      <div class="realprice-input">
+        <label for="realprice">Prix réel constaté ($)</label>
+        <input type="number" id="realprice" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <p id="margin-info" class="margin-info"></p>
+    </div>
+
+    <button class="btn-gold btn-save" id="btn-save">Enregistrer l'évaluation</button>
+  </section>
+
+  <!-- ============ VUE HISTORIQUE ============ -->
+  <section id="view-history" class="view">
+    <h3 class="section-title">Évaluations enregistrées</h3>
+    <ul id="history-list" class="history-list"></ul>
+    <p id="history-empty" class="hint-note">Aucune évaluation enregistrée pour l'instant.</p>
+    <button class="btn-outline" id="btn-clear-history">Vider l'historique</button>
+  </section>
+
+</main>
+
+<!-- ============ MODAL IDENTIFICATION ============ -->
+<div id="picker" class="picker" hidden>
+  <div class="picker-panel">
+    <div class="picker-head">
+      <strong>Identifier cette photo</strong>
+      <button id="picker-close" class="btn-clear">&times;</button>
+    </div>
+    <img id="picker-photo" class="picker-photo" alt="Photo à identifier">
+    <input type="search" id="picker-input" placeholder="Rechercher dans la base&hellip;" autocomplete="off">
+    <ul id="picker-results" class="results"></ul>
+    <button class="btn-outline" id="picker-skip" style="width:100%">Sans correspondance</button>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-view="view-scan">
+    <span class="nav-icon">&#128247;</span>Scanner
+  </button>
+  <button class="nav-btn" data-view="view-search">
+    <span class="nav-icon">&#128269;</span>Recherche
+  </button>
+  <button class="nav-btn" data-view="view-history">
+    <span class="nav-icon">&#128203;</span>Historique
+  </button>
+</nav>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

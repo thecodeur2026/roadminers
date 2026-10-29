@@ -1,0 +1,11 @@
+.env
+*.log
+*.pdf
+tmp/
+work/
+pages/
+pages2/
+__pycache__/
+.DS_Store
+node_modules/
+.vercel
