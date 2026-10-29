@@ -23,7 +23,8 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 
 | Ressource | Emplacement |
 |---|---|
-| **App en ligne** | https://roadminers.vercel.app |
+| **App en ligne** | https://www.roadminers.com (domaine officiel) |
+| URL Vercel | https://roadminers.vercel.app |
 | Dépôt GitHub | https://github.com/thecodeur2026/roadminers (branche `main`) |
 | Base Supabase | projet `okznxgssfvgkidymwwhx` |
 | Cours en direct | https://okznxgssfvgkidymwwhx.supabase.co/functions/v1/spot |
