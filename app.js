@@ -881,6 +881,43 @@ function registerSW() {
   }
 }
 
+/* ---------- Installation PWA ---------- */
+let deferredInstall = null;
+
+function initInstall() {
+  const btn = $("#btn-install");
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInstalled = matchMedia("(display-mode: standalone)").matches
+    || navigator.standalone === true;
+
+  if (isInstalled) { btn.hidden = true; return; }
+
+  addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    btn.hidden = false;
+  });
+
+  addEventListener("appinstalled", () => {
+    btn.hidden = true;
+    deferredInstall = null;
+    toast("ROAD MINERS installée !");
+  });
+
+  btn.addEventListener("click", async () => {
+    if (deferredInstall) {
+      deferredInstall.prompt();
+      const choice = await deferredInstall.userChoice;
+      if (choice.outcome === "accepted") btn.hidden = true;
+      deferredInstall = null;
+    } else if (isIOS) {
+      alert("Pour installer ROAD MINERS sur iPhone :\n\n1. Touche le bouton Partager (carré avec flèche)\n2. Choisis « Sur l'écran d'accueil »\n3. Touche « Ajouter »");
+    } else {
+      alert("Pour installer ROAD MINERS :\n\n• Chrome/Edge : icône d'installation dans la barre d'adresse\n• ou menu ⋮ → « Installer l'application »");
+    }
+  });
+}
+
 /* ---------- Init ---------- */
 (async function init() {
   await loadData();
@@ -890,6 +927,7 @@ function registerSW() {
   initGoldFx();                  // effet pluie d'or
   initBgFx();                    // arrière-plan animé
   addEventListener("resize", () => drawSpotChart());
+  initInstall();                 // bouton d'installation PWA
   registerSW();
   startCamera(); // la caméra s'active dès l'ouverture
 })();
