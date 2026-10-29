@@ -498,7 +498,8 @@ function meltRowValue(row) {
   const m = SPOT.materials[row.mat] || SPOT.materials[0];
   const g = parseFloat(row.grams) || 0;
   const tier = m.tiers.reduce((best, t) => (g >= t.min_g ? t : best), m.tiers[0]);
-  return { per: tier.wholesale, val: tier.wholesale * g, g };
+  const per = tier.individual; // référence : prix NON-WHOLESALE Kitco
+  return { per, val: per * g, g };
 }
 
 function updateMeltV2() {
@@ -528,7 +529,7 @@ function updateMeltV2() {
     total += val;
   });
   $("#melt-result").innerHTML = anyVal
-    ? `<span class="melt-total-label">TOTAL — prix d'achat max (100 % = prix Kitco)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
+    ? `<span class="melt-total-label">TOTAL (100 % = prix Non-Wholesale Kitco)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
     : `Entrez le poids en grammes de chaque matériau.`;
   const tiers = $("#melt-tiers");
   tiers.innerHTML = "";
