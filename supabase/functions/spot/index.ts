@@ -74,17 +74,44 @@ async function scrapeSpot() {
   return { spot, rate };
 }
 
+// Historique intraday (Yahoo Finance, 30 min) pour le graphique d'évolution
+async function scrapeHistory() {
+  const out: Record<string, [number, number][]> = {};
+  const syms: Record<string, string> = { XAU: "GC=F", XAG: "SI=F", XPT: "PL=F", XPD: "PA=F" };
+  for (const [metal, sym] of Object.entries(syms)) {
+    try {
+      const r = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1h`,
+        { headers: { "User-Agent": UA } });
+      const d = await r.json();
+      const res = d?.chart?.result?.[0];
+      const ts: number[] = res?.timestamp ?? [];
+      const closes: (number | null)[] = res?.indicators?.quote?.[0]?.close ?? [];
+      const pts: [number, number][] = [];
+      for (let i = 0; i < ts.length; i++) {
+        if (closes[i] != null) pts.push([ts[i] * 1000, Math.round(closes[i]! * 100) / 100]);
+      }
+      out[metal] = pts.slice(-80);
+    } catch {
+      out[metal] = [];
+    }
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const errors: string[] = [];
   let materials: unknown[] = [];
-  let spot = {}, rate = null;
+  let spot = {}, rate = null, history = {};
   try { materials = await scrapeKitco(); } catch (e) { errors.push(`kitco: ${e}`); }
   try { ({ spot, rate } = await scrapeSpot()); } catch (e) { errors.push(`spot: ${e}`); }
+  try { history = await scrapeHistory(); } catch (e) { errors.push(`history: ${e}`); }
   const body = JSON.stringify({
     updated: new Date().toISOString(),
     usdcad: rate,
     spot,
+    history,
     materials,
     errors,
   });

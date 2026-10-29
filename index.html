@@ -15,6 +15,8 @@
 </head>
 <body>
 
+<canvas id="bg-fx" aria-hidden="true"></canvas>
+
 <header class="app-header">
   <div class="logo-mark">R</div>
   <div class="logo-text">
@@ -42,7 +44,10 @@
       </div>
     </div>
 
-    <div class="spot-ticker" id="spot-ticker"></div>
+    <div class="spot-ticker" id="spot-ticker-wrap">
+      <canvas id="spot-chart" aria-hidden="true"></canvas>
+      <div class="spot-grid" id="spot-ticker"></div>
+    </div>
 
     <h3 class="section-title">Lot en cours (<span id="lot-count">0</span>)</h3>
     <p class="hint-note" id="lot-hint">Photographiez les pièces/billets, puis touchez chaque photo pour l'identifier dans la base de données.</p>

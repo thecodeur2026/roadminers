@@ -93,6 +93,26 @@ def scrape_spot():
     return spot, rate
 
 
+YF_HIST = "https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=5d&interval=1h"
+YF_SYMS = {"XAU": "GC=F", "XAG": "SI=F", "XPT": "PL=F", "XPD": "PA=F"}
+
+
+def scrape_history():
+    """Historique 5 jours / 1 h pour le graphique d'évolution."""
+    out = {}
+    for metal, sym in YF_SYMS.items():
+        try:
+            d = json.loads(fetch(YF_HIST.format(sym=sym)))
+            res = d["chart"]["result"][0]
+            ts = res.get("timestamp") or []
+            closes = (res.get("indicators", {}).get("quote") or [{}])[0].get("close") or []
+            pts = [[t * 1000, round(c, 2)] for t, c in zip(ts, closes) if c is not None]
+            out[metal] = pts[-80:]
+        except Exception:
+            out[metal] = []
+    return out
+
+
 def get_spot_data():
     now = time.time()
     if _cache["data"] and now - _cache["ts"] < CACHE_TTL:
@@ -107,6 +127,10 @@ def get_spot_data():
         data["spot"], data["usdcad"] = scrape_spot()
     except Exception as e:
         data["errors"].append(f"spot: {e}")
+    try:
+        data["history"] = scrape_history()
+    except Exception as e:
+        data["errors"].append(f"history: {e}")
     _cache.update(ts=now, data=data)
     return data
 

@@ -380,12 +380,33 @@ body {
 .melt-result strong { color: var(--gold); }
 
 /* ----- Ticker cours en direct ----- */
+#bg-fx {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .5;
+}
+.app-header, #app, .bottom-nav { position: relative; z-index: 1; }
 .spot-ticker {
+  position: relative;
+  margin: 14px 0 4px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+#spot-chart {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+.spot-grid {
+  position: relative;
   display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 8px; margin: 14px 0 4px;
+  gap: 8px;
 }
 .spot-chip {
-  background: var(--bg-card);
+  background: rgba(22, 22, 22, .82);
+  backdrop-filter: blur(2px);
   border: 1px solid #2c2c2c;
   border-left: 3px solid var(--gold);
   border-radius: 10px;

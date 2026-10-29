@@ -368,6 +368,19 @@ let SPOT = null; // {updated, materials, spot, usdcad}
 const METAL_LABELS = [["XAU", "Or"], ["XAG", "Argent"], ["XPT", "Platine"], ["XPD", "Palladium"]];
 
 async function loadSpot() {
+  // 1) affichage IMMÉDIAT depuis le cache local (aucune attente réseau)
+  if (!SPOT) {
+    try {
+      const cached = JSON.parse(localStorage.getItem("roadminer_spotdata"));
+      if (cached) {
+        SPOT = cached;
+        renderSpotTicker();
+        initMeltV2();
+        drawSpotChart();
+      }
+    } catch {}
+  }
+  // 2) puis mise à jour fraîche
   let data = null;
   const urls = [];
   // Edge Function Supabase si configurée (HTTPS, sans CORS), sinon proxy local
@@ -388,18 +401,16 @@ async function loadSpot() {
       }
     } catch {}
   }
-  if (!data) {
-    try { data = JSON.parse(localStorage.getItem("roadminer_spotdata")); } catch {}
-  }
-  if (!data) {
+  if (!data && !SPOT) {
     try {
       const r = await fetch("data/spot-fallback.json");
       if (r.ok) data = await r.json();
     } catch {}
   }
-  SPOT = data;
+  if (data) SPOT = data;
   renderSpotTicker();
   initMeltV2();
+  drawSpotChart();
 }
 
 function renderSpotTicker() {
@@ -527,6 +538,107 @@ function goldTick() {
   }
   if (fxParts.length) requestAnimationFrame(goldTick);
   else { fxRunning = false; ctx.clearRect(0, 0, w, h); }
+}
+
+/* ---------- Graphique d'évolution (derrière les cours) ---------- */
+function drawSpotChart() {
+  const cv = $("#spot-chart");
+  if (!cv || !SPOT) return;
+  const parent = cv.parentElement;
+  cv.width = parent.offsetWidth;
+  cv.height = parent.offsetHeight;
+  const ctx = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  ctx.clearRect(0, 0, w, h);
+
+  let hist = SPOT.history || {};
+  // secours : accumulation locale d'échantillons au fil des rafraîchissements
+  if (!Object.values(hist).some((s) => s && s.length >= 4)) {
+    try {
+      const acc = JSON.parse(localStorage.getItem("roadminer_hist")) || [];
+      if (SPOT.spot?.XAU?.usd_oz) {
+        acc.push({
+          t: Date.now(),
+          XAU: SPOT.spot.XAU.usd_oz, XAG: SPOT.spot.XAG?.usd_oz,
+          XPT: SPOT.spot.XPT?.usd_oz, XPD: SPOT.spot.XPD?.usd_oz
+        });
+        localStorage.setItem("roadminer_hist", JSON.stringify(acc.slice(-300)));
+      }
+      hist = {};
+      for (const k of ["XAU", "XAG", "XPT", "XPD"]) {
+        hist[k] = acc.filter((p) => p[k]).map((p) => [p.t, p[k]]);
+      }
+    } catch { return; }
+  }
+
+  const colors = { XAU: "212,175,55", XAG: "200,200,210", XPT: "150,220,200", XPD: "230,170,120" };
+  for (const [metal, pts] of Object.entries(hist)) {
+    if (!pts || pts.length < 3) continue;
+    const vals = pts.map((p) => p[1]);
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const span = max - min || 1;
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const x = (i / (pts.length - 1)) * w;
+      const y = h - 6 - ((p[1] - min) / span) * (h - 14);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = `rgba(${colors[metal] || "212,175,55"}, .55)`;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    // zone dégradée sous la courbe
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, `rgba(${colors[metal] || "212,175,55"}, .10)`);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+}
+
+/* ---------- Arrière-plan animé (poussière d'or) ---------- */
+let bgRunning = false;
+
+function initBgFx() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("#bg-fx");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  const resize = () => { cv.width = innerWidth; cv.height = innerHeight; };
+  addEventListener("resize", resize);
+  resize();
+  const parts = [];
+  for (let i = 0; i < 26; i++) {
+    parts.push({
+      x: Math.random() * cv.width,
+      y: Math.random() * cv.height,
+      r: 0.8 + Math.random() * 2.4,
+      vx: (Math.random() - 0.5) * 0.16,
+      vy: -0.08 - Math.random() * 0.22,
+      a: 0.15 + Math.random() * 0.35,
+      tw: Math.random() * Math.PI * 2
+    });
+  }
+  if (bgRunning) return;
+  bgRunning = true;
+  (function tick() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of parts) {
+      p.x += p.vx; p.y += p.vy; p.tw += 0.02;
+      if (p.y < -6) { p.y = cv.height + 6; p.x = Math.random() * cv.width; }
+      if (p.x < -6) p.x = cv.width + 6;
+      if (p.x > cv.width + 6) p.x = -6;
+      const alpha = p.a * (0.6 + 0.4 * Math.sin(p.tw));
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+      g.addColorStop(0, `rgba(242, 213, 126, ${alpha})`);
+      g.addColorStop(1, "rgba(212, 175, 55, 0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  })();
 }
 
 /* ---------- Historique ---------- */
@@ -679,6 +791,7 @@ function registerSW() {
   loadSpot();                    // cours en direct
   setInterval(loadSpot, 300000); // rafraîchissement toutes les 5 min
   initGoldFx();                  // effet pluie d'or
+  initBgFx();                    // arrière-plan animé
   registerSW();
   startCamera(); // la caméra s'active dès l'ouverture
 })();
