@@ -446,13 +446,82 @@ function updateMeltV2() {
   const tiers = $("#melt-tiers");
   tiers.innerHTML = "";
   if (g > 0) {
+    if (g !== updateMeltV2._lastG) goldBurst(); // pluie d'or à chaque saisie
+    updateMeltV2._lastG = g;
     for (const p of PERCENTS) {
       const div = document.createElement("div");
       div.className = "tier" + (p === 100 ? " full" : "");
       div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total * p / 100)}</span>`;
       tiers.appendChild(div);
     }
+  } else {
+    updateMeltV2._lastG = 0;
   }
+}
+
+/* ---------- Effet « pluie de grains d'or » (3D) ---------- */
+let fxCanvas = null, fxCtx = null, fxParts = [], fxRunning = false;
+
+function initGoldFx() {
+  fxCanvas = $("#gold-fx");
+  if (!fxCanvas) return;
+  fxCtx = fxCanvas.getContext("2d");
+  const resize = () => {
+    fxCanvas.width = fxCanvas.offsetWidth;
+    fxCanvas.height = fxCanvas.offsetHeight;
+  };
+  new ResizeObserver(resize).observe(fxCanvas);
+  resize();
+}
+
+function goldBurst() {
+  if (!fxCtx) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const w = fxCanvas.width;
+  for (let i = 0; i < 30; i++) {
+    fxParts.push({
+      x: Math.random() * w,
+      y: -8 - Math.random() * 60,
+      r: 2 + Math.random() * 4.5,
+      vy: 0.8 + Math.random() * 2.4,
+      vx: (Math.random() - 0.5) * 1.1,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.18,
+      life: 1
+    });
+  }
+  if (!fxRunning) {
+    fxRunning = true;
+    requestAnimationFrame(goldTick);
+  }
+}
+
+function goldTick() {
+  const ctx = fxCtx, w = fxCanvas.width, h = fxCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+  fxParts = fxParts.filter((p) => p.life > 0 && p.y < h + 24);
+  for (const p of fxParts) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rot += p.vr;
+    if (p.y > h * 0.75) p.life -= 0.045; // fondu vers le bas
+    // grain 3D : ellipse qui pivote sur elle-même
+    const squash = 0.25 + 0.75 * Math.abs(Math.sin(p.rot * 2));
+    const grad = ctx.createRadialGradient(0, -p.r * 0.3, 0, 0, 0, p.r);
+    grad.addColorStop(0, `rgba(255, 238, 180, ${p.life})`);
+    grad.addColorStop(0.55, `rgba(212, 175, 55, ${p.life})`);
+    grad.addColorStop(1, `rgba(120, 90, 20, 0)`);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(1, squash);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  if (fxParts.length) requestAnimationFrame(goldTick);
+  else { fxRunning = false; ctx.clearRect(0, 0, w, h); }
 }
 
 /* ---------- Historique ---------- */
@@ -604,6 +673,7 @@ function registerSW() {
   bindEvents();
   loadSpot();                    // cours en direct
   setInterval(loadSpot, 300000); // rafraîchissement toutes les 5 min
+  initGoldFx();                  // effet pluie d'or
   registerSW();
   startCamera(); // la caméra s'active dès l'ouverture
 })();

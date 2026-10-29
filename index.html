@@ -28,16 +28,18 @@
   <!-- ============ VUE SCANNER (par défaut) ============ -->
   <section id="view-scan" class="view active">
 
-    <div class="cam-frame">
-      <video id="cam" autoplay playsinline muted></video>
-      <div class="cam-off" id="cam-off">
-        <p>Caméra inactive</p>
-        <button class="btn-gold" id="btn-cam-on">Activer la caméra</button>
+    <div class="cam-sticky">
+      <div class="cam-frame">
+        <video id="cam" autoplay playsinline muted></video>
+        <div class="cam-off" id="cam-off">
+          <p>Caméra inactive</p>
+          <button class="btn-gold" id="btn-cam-on">Activer la caméra</button>
+        </div>
       </div>
-    </div>
 
-    <div class="cam-actions">
-      <button class="btn-capture" id="btn-capture" aria-label="Capturer">&#9679;</button>
+      <div class="cam-actions">
+        <button class="btn-capture" id="btn-capture" aria-label="Capturer">&#9679;</button>
+      </div>
     </div>
 
     <div class="spot-ticker" id="spot-ticker"></div>
@@ -55,6 +57,7 @@
 
     <h3 class="section-title">Calculateur de fonte — prix d'achat max / gramme</h3>
     <div class="melt-card">
+      <canvas id="gold-fx"></canvas>
       <div class="melt-row">
         <div class="melt-field melt-grow">
           <label for="melt-material">Matériau</label>
