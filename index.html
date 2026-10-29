@@ -43,8 +43,6 @@
       <div class="cam-actions">
         <button class="btn-capture" id="btn-capture" aria-label="Capturer">&#9679;</button>
       </div>
-
-      <div class="spot-grid" id="spot-ticker"></div>
     </div>
 
     <h3 class="section-title">Lot en cours (<span id="lot-count">0</span>)</h3>
@@ -58,7 +56,10 @@
       <button class="btn-outline" id="btn-clear-lot" style="width:100%;margin-top:8px">Vider le lot</button>
     </div>
 
-    <h3 class="section-title">Calculateur de fonte — prix d'achat max / gramme</h3>
+    <h3 class="section-title">Cours en direct & calculateur de fonte</h3>
+    <div class="spot-grid" id="spot-ticker"></div>
+
+    <h3 class="section-title" style="margin-top:14px">Prix d'achat max / gramme</h3>
     <div class="melt-card">
       <canvas id="gold-fx"></canvas>
       <div class="melt-row">

@@ -53,14 +53,20 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; height: 100%; }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  min-height: 100vh;
-  padding-bottom: 84px;
+  height: 100%;
+  overflow: hidden;   /* page figée : seul #app défile */
+}
+
+#app {
+  height: calc(100dvh - 73px - 66px); /* moins en-tête et menu du bas */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ----- En-tête ----- */
@@ -275,7 +281,7 @@ body {
 /* ----- Scanner / caméra ----- */
 .cam-sticky {
   position: sticky;
-  top: 73px;              /* sous l'en-tête fixe */
+  top: 0;                 /* collé en haut de la zone scrollable */
   z-index: 15;
   background: var(--bg);
   padding-bottom: 6px;
