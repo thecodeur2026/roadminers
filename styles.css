@@ -443,6 +443,22 @@ body {
   min-width: 74px; text-align: right;
 }
 .btn-add { width: 100%; margin: 4px 0 10px; }
+.melt-pcts {
+  grid-column: 1 / -1;
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
+  padding: 2px 2px 6px;
+}
+.melt-pcts:empty { padding: 0; }
+.mp { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.mp b { color: var(--gold-light); font-weight: 700; }
+.melt-total-label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: var(--text-dim); letter-spacing: .5px; margin-bottom: 2px;
+}
+.melt-total {
+  font-size: 26px; color: var(--gold);
+  text-shadow: 0 0 18px rgba(212,175,55,.35);
+}
 
 /* ----- Modal identification ----- */
 .picker {

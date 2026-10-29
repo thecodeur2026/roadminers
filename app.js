@@ -453,7 +453,8 @@ function renderMeltRows() {
       <select class="melt-mat" data-i="${i}" aria-label="Matériau">${materialOptions(row.mat)}</select>
       <input class="melt-g" data-i="${i}" type="number" min="0" step="0.01" placeholder="grammes" value="${row.grams}" aria-label="Grammes">
       <span class="melt-val" id="melt-val-${i}">—</span>
-      ${meltRows.length > 1 ? `<button class="lot-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}`;
+      ${meltRows.length > 1 ? `<button class="lot-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}
+      <div class="melt-pcts" id="melt-pcts-${i}"></div>`;
     zone.appendChild(div);
   });
   zone.querySelectorAll(".melt-mat").forEach((s) =>
@@ -507,6 +508,14 @@ function updateMeltV2() {
     const { per, val, g } = meltRowValue(row);
     const span = $("#melt-val-" + i);
     if (span) span.textContent = val > 0 ? fmt(val) : "—";
+    // pourcentages à côté de chaque ligne
+    const pcts = $("#melt-pcts-" + i);
+    if (pcts) {
+      pcts.innerHTML = val > 0
+        ? PERCENTS.map((p) =>
+            `<span class="mp"><b>${p} %</b> ${fmt(val * p / 100)}</span>`).join("")
+        : "";
+    }
     if (val > 0) {
       anyVal = true;
       details.push(`${fmt(per)}/g × ${g} g`);
@@ -514,7 +523,7 @@ function updateMeltV2() {
     total += val;
   });
   $("#melt-result").innerHTML = anyVal
-    ? `Total prix d'achat max : <strong>${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
+    ? `<span class="melt-total-label">TOTAL — prix d'achat max (100 % = prix Kitco)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
     : `Entrez le poids en grammes de chaque matériau.`;
   const tiers = $("#melt-tiers");
   tiers.innerHTML = "";
