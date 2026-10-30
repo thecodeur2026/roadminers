@@ -431,11 +431,18 @@ function renderSpotTicker() {
 }
 
 /* --- Calculateur multi-matériaux --- */
-let meltRows = [{ mat: 0, grams: "", pct: 100 }];
+let meltRows = [{ mat: -1, grams: "", pct: 100 }]; // mat:-1 → sera 10 K par défaut
+
+function defaultMatIndex() {
+  if (!SPOT || !SPOT.materials) return 0;
+  const i = SPOT.materials.findIndex((m) => /^10\s?K/i.test(m.name));
+  return i >= 0 ? i : 0;
+}
 
 function materialOptions(selIdx) {
+  const sel = selIdx >= 0 ? selIdx : defaultMatIndex();
   return SPOT.materials
-    .map((m, i) => `<option value="${i}"${i === selIdx ? " selected" : ""}>${m.name}</option>`)
+    .map((m, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${m.name}</option>`)
     .join("");
 }
 
@@ -506,7 +513,7 @@ function initMeltV2() {
 }
 
 function meltRowValue(row) {
-  const m = SPOT.materials[row.mat] || SPOT.materials[0];
+  const m = SPOT.materials[row.mat >= 0 ? row.mat : defaultMatIndex()] || SPOT.materials[0];
   const g = parseFloat(row.grams) || 0;
   const tier = m.tiers.reduce((best, t) => (g >= t.min_g ? t : best), m.tiers[0]);
   const per = tier.individual; // référence : prix NON-WHOLESALE Kitco
@@ -846,7 +853,7 @@ function bindEvents() {
     if (confirm("Vider le lot en cours ?")) { lot = []; renderLot(); }
   });
   $("#btn-add-material").addEventListener("click", () => {
-    meltRows.push({ mat: 0, grams: "" });
+    meltRows.push({ mat: defaultMatIndex(), grams: "", pct: 100 });
     renderMeltRows();
     updateMeltV2();
     const inputs = document.querySelectorAll(".melt-g");
