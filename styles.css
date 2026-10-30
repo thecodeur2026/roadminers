@@ -211,6 +211,22 @@ body {
 .coin-face .cf-sub { font-size: 10px; font-weight: 700; margin-top: 5px; opacity: .75; letter-spacing: .5px; }
 .coin-face .cf-price { font-weight: 900; font-size: 17px; text-shadow: 0 1px 0 rgba(255,255,255,.45); }
 .coin-face .cf-logo { font-size: 30px; font-weight: 900; opacity: .35; letter-spacing: 1px; }
+/* faces avec vraies photos Numista */
+.coin-face.has-img {
+  background-size: cover;
+  background-position: center;
+  border-color: var(--gold);
+}
+.coin-face.has-img .cf-badge {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  max-width: 86%;
+  background: rgba(10, 10, 10, .78);
+  color: var(--gold-light);
+  font-size: 9.5px; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 /* ----- Détail ----- */
 .btn-back {

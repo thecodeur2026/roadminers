@@ -64,6 +64,26 @@ function guidePageUrl(e) {
   return e.source === "catalogue" ? `pages2/p2-${p}.png` : `pages/page-${p}.png`;
 }
 
+/* ---------- Correspondance Numista (images pile/face) ---------- */
+let NUMISTA = {};
+
+/* clé identique à entry_key() du script python (numista_match.py) */
+function entryKey(e) {
+  const price = e.price === null || e.price === undefined
+    ? "None"
+    : Number.isInteger(e.price) ? e.price.toFixed(1) : String(e.price);
+  return [e.source, e.page, e.section, e.category, e.series, e.date, e.description, price]
+    .map((x) => (x === null || x === undefined ? "" : String(x)))
+    .join("|");
+}
+
+async function loadNumistaMap() {
+  try {
+    const res = await fetch("data/numista_map.json");
+    if (res.ok) NUMISTA = await res.json();
+  } catch { NUMISTA = {}; }
+}
+
 /* ---------- Chargement des données ---------- */
 async function loadData() {
   try {
@@ -201,16 +221,27 @@ function openDetail(e) {
   const q = encodeURIComponent(entryTitle(e) + " " + (e.series || ""));
   $("#pricecharting-link").href = "https://www.pricecharting.com/search-products?q=" + q;
 
-  // pièce 3D : face = article, pile = prix
+  // pièce 3D : vraies images Numista si disponibles, sinon faces dorées
   const title = entryTitle(e);
-  $("#coin-front").innerHTML = `
-    <div class="cf-logo">R</div>
-    <div class="cf-title">${escapeHtml(title.length > 42 ? title.slice(0, 42) + "…" : title)}</div>
-    <div class="cf-sub">${escapeHtml(e.category || e.section || "ROAD MINERS")}</div>`;
-  $("#coin-back").innerHTML = `
-    <div class="cf-sub">${isCatalog ? "VALEUR CATALOGUE" : "ON PREND"}</div>
-    <div class="cf-price">${e.price != null ? fmt(e.price) : "—"}</div>
-    <div class="cf-sub">100 % ${isCatalog ? "valeur" : "prix du guide"}</div>`;
+  const nm = NUMISTA[entryKey(e)];
+  const front = $("#coin-front"), back = $("#coin-back");
+  front.classList.toggle("has-img", !!(nm && nm.obv));
+  back.classList.toggle("has-img", !!(nm && nm.rev));
+  front.style.backgroundImage = nm && nm.obv ? `url("${nm.obv}")` : "";
+  back.style.backgroundImage = nm && nm.rev ? `url("${nm.rev}")` : "";
+  if (nm && nm.obv && nm.rev) {
+    front.innerHTML = `<div class="cf-badge">${escapeHtml(title.length > 36 ? title.slice(0, 36) + "…" : title)}</div>`;
+    back.innerHTML = `<div class="cf-badge">${e.price != null ? fmt(e.price) : ""}</div>`;
+  } else {
+    front.innerHTML = `
+      <div class="cf-logo">R</div>
+      <div class="cf-title">${escapeHtml(title.length > 42 ? title.slice(0, 42) + "…" : title)}</div>
+      <div class="cf-sub">${escapeHtml(e.category || e.section || "ROAD MINERS")}</div>`;
+    back.innerHTML = `
+      <div class="cf-sub">${isCatalog ? "VALEUR CATALOGUE" : "ON PREND"}</div>
+      <div class="cf-price">${e.price != null ? fmt(e.price) : "—"}</div>
+      <div class="cf-sub">100 % ${isCatalog ? "valeur" : "prix du guide"}</div>`;
+  }
 
   showView("view-detail");
   window.scrollTo(0, 0);
@@ -959,6 +990,7 @@ function initInstall() {
 
 /* ---------- Init ---------- */
 (async function init() {
+  loadNumistaMap(); // en parallèle, non bloquant
   await loadData();
   bindEvents();
   loadSpot();                    // cours en direct
