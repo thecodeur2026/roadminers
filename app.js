@@ -201,6 +201,17 @@ function openDetail(e) {
   const q = encodeURIComponent(entryTitle(e) + " " + (e.series || ""));
   $("#pricecharting-link").href = "https://www.pricecharting.com/search-products?q=" + q;
 
+  // pièce 3D : face = article, pile = prix
+  const title = entryTitle(e);
+  $("#coin-front").innerHTML = `
+    <div class="cf-logo">R</div>
+    <div class="cf-title">${escapeHtml(title.length > 42 ? title.slice(0, 42) + "…" : title)}</div>
+    <div class="cf-sub">${escapeHtml(e.category || e.section || "ROAD MINERS")}</div>`;
+  $("#coin-back").innerHTML = `
+    <div class="cf-sub">${isCatalog ? "VALEUR CATALOGUE" : "ON PREND"}</div>
+    <div class="cf-price">${e.price != null ? fmt(e.price) : "—"}</div>
+    <div class="cf-sub">100 % ${isCatalog ? "valeur" : "prix du guide"}</div>`;
+
   showView("view-detail");
   window.scrollTo(0, 0);
 }

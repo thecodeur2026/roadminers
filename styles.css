@@ -166,6 +166,52 @@ body {
 .result-price { color: var(--gold); font-weight: 800; float: right; }
 .results-count { color: var(--text-dim); font-size: 12.5px; margin-top: 8px; text-align: center; }
 
+/* ----- Pièce 3D tournoyante (pile / face) ----- */
+.coin3d-scene {
+  perspective: 900px;
+  display: grid; place-items: center;
+  margin: 4px 0 18px;
+}
+.coin3d {
+  position: relative;
+  width: 148px; height: 148px;
+  transform-style: preserve-3d;
+  animation: coinSpin 3.6s linear infinite;
+}
+@keyframes coinSpin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+.coin3d::before {  /* tranche de la pièce */
+  content: "";
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(#8a6d1c, #f2d57e, #8a6d1c, #f2d57e, #8a6d1c);
+  transform: translateZ(-3px);
+}
+.coin-face {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  display: grid; place-items: center; align-content: center;
+  text-align: center; padding: 14px;
+  backface-visibility: hidden;
+  border: 3px solid #9c7c1e;
+  box-shadow: inset 0 0 22px rgba(90, 65, 5, .45);
+}
+.coin-front {
+  background: radial-gradient(circle at 35% 28%, #f9e7a5, #d4af37 55%, #9c7c1e);
+  color: #3a2c05;
+}
+.coin-back {
+  background: radial-gradient(circle at 60% 30%, #ecd27f, #b8912c 55%, #7a5f16);
+  color: #2e2304;
+  transform: rotateY(180deg);
+}
+.coin-face .cf-title { font-weight: 900; font-size: 13.5px; line-height: 1.25; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+.coin-face .cf-sub { font-size: 10px; font-weight: 700; margin-top: 5px; opacity: .75; letter-spacing: .5px; }
+.coin-face .cf-price { font-weight: 900; font-size: 17px; text-shadow: 0 1px 0 rgba(255,255,255,.45); }
+.coin-face .cf-logo { font-size: 30px; font-weight: 900; opacity: .35; letter-spacing: 1px; }
+
 /* ----- Détail ----- */
 .btn-back {
   background: none; border: none; color: var(--gold);
