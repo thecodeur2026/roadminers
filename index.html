@@ -60,6 +60,14 @@
       <div id="melt-rows"></div>
       <button class="btn-outline btn-add" id="btn-add-material">&#10010; Ajouter un matériau</button>
       <p class="melt-result" id="melt-result">Total : —</p>
+      <div class="custom-pct" id="custom-pct-zone" hidden>
+        <label for="custom-pct">% au choix sur le total 100 % Kitco :</label>
+        <div class="custom-pct-row">
+          <input type="number" id="custom-pct" min="0" max="100" step="0.5" placeholder="ex. 42">
+          <span class="custom-pct-sign">%</span>
+          <strong id="custom-pct-val">—</strong>
+        </div>
+      </div>
       <div class="tiers" id="melt-tiers"></div>
       <p class="hint-note" id="melt-source">100 % = prix <strong>Non-Wholesale</strong> par gramme de la page <a href="https://online.kitco.com/refining/gold-silver-CAD.html" target="_blank" rel="noopener" style="color:var(--gold)">Kitco refining (CAD)</a>, selon la contenance — cours en direct.</p>
     </div>

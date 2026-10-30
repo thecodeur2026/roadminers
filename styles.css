@@ -541,6 +541,20 @@ body {
   font-size: 26px; color: var(--gold);
   text-shadow: 0 0 18px rgba(212,175,55,.35);
 }
+.custom-pct { margin-top: 12px; }
+.custom-pct label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.custom-pct-row { display: flex; align-items: center; gap: 8px; }
+.custom-pct-row input {
+  width: 90px; padding: 11px 10px; font-size: 16px; font-weight: 700;
+  color: var(--gold-light); background: var(--bg-raised);
+  border: 1.5px solid var(--gold); border-radius: 10px; outline: none;
+  text-align: center;
+}
+.custom-pct-sign { color: var(--gold); font-weight: 800; font-size: 16px; }
+.custom-pct-row strong { color: var(--gold); font-size: 20px; }
 
 /* ----- Modal identification ----- */
 .picker {

@@ -559,6 +559,9 @@ function updateMeltV2() {
     total += val;
     total100 += val100;
   });
+  // % personnalisé (uniquement sur le total de référence 100 % Kitco)
+  $("#custom-pct-zone").hidden = !anyVal;
+  updateCustomPct(total100);
   $("#melt-result").innerHTML = anyVal
     ? `<span class="melt-total-label">TOTAL À PAYER (vos % par article)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
     : `Entrez le poids en grammes de chaque matériau.`;
@@ -582,6 +585,18 @@ function updateMeltV2() {
   } else {
     updateMeltV2._lastTotal = 0;
   }
+}
+
+/* % personnalisé — mémorisé entre les sessions */
+let customPctBase = 0;
+
+function updateCustomPct(base) {
+  customPctBase = base;
+  const inp = $("#custom-pct");
+  const out = $("#custom-pct-val");
+  if (!inp || !out) return;
+  const p = parseFloat(inp.value);
+  out.textContent = (!isNaN(p) && base > 0) ? fmt(base * p / 100) : "—";
 }
 
 /* ---------- Effet « pluie de grains d'or » (3D) ---------- */
@@ -869,6 +884,12 @@ function bindEvents() {
     updateMeltV2();
     const inputs = document.querySelectorAll(".melt-g");
     if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+  const customInp = $("#custom-pct");
+  try { customInp.value = localStorage.getItem("roadminer_custompct") || ""; } catch {}
+  customInp.addEventListener("input", () => {
+    localStorage.setItem("roadminer_custompct", customInp.value);
+    updateCustomPct(customPctBase);
   });
 
   // modal identification
