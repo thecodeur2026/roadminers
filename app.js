@@ -198,6 +198,7 @@ function openDetail(e) {
   $("#margin-info").textContent = "";
 
   const isCatalog = e.source === "catalogue";
+  const nm = NUMISTA[entryKey(e)];
   const verdict = $("#verdict");
   verdict.textContent = isCatalog ? "VALEUR CATALOGUE" : "ON PREND";
   verdict.classList.remove("no");
@@ -206,7 +207,15 @@ function openDetail(e) {
   $("#detail-title").textContent = entryTitle(e);
   $("#detail-ref").textContent = entryRef(e) + (e.page ? `  •  ${isCatalog ? "Catalogue" : "Guide"} p. ${e.page}` : "");
   $("#detail-price").textContent = e.price != null ? fmt(e.price) : "—";
-  $("#guide-page-link").href = guidePageUrl(e);
+  // référence Numista si liée, sinon page du livre
+  const link = $("#guide-page-link");
+  if (nm && nm.id) {
+    link.href = "https://en.numista.com/catalogue/pieces" + nm.id + ".html";
+    link.innerHTML = "Voir la référence sur Numista &nearr;";
+  } else {
+    link.href = guidePageUrl(e);
+    link.innerHTML = "Voir la page du livre (photos des pièces) &nearr;";
+  }
 
   const tiers = $("#tiers");
   tiers.innerHTML = "";
@@ -223,7 +232,6 @@ function openDetail(e) {
 
   // pièce 3D : vraies images Numista si disponibles, sinon faces dorées
   const title = entryTitle(e);
-  const nm = NUMISTA[entryKey(e)];
   const front = $("#coin-front"), back = $("#coin-back");
   front.classList.toggle("has-img", !!(nm && nm.obv));
   back.classList.toggle("has-img", !!(nm && nm.rev));
