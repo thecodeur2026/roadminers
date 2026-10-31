@@ -145,6 +145,28 @@ def search_numista(issuer, denom, year, desc_words):
     return None
 
 
+def search_with_retry(issuer, denom, year, desc_words):
+    """Réessaie sur 429 (quota) et erreurs réseau ; lève QuotaExceeded si quota persistant."""
+    for attempt in range(4):
+        try:
+            return search_numista(issuer, denom, year, desc_words)
+        except urllib.error.HTTPError as ex:
+            if ex.code == 429:
+                print(f"429 quota — pause {90*(attempt+1)} s (essai {attempt+1}/4)", flush=True)
+                time.sleep(90 * (attempt + 1))
+            else:
+                print(f"erreur API: {ex}", flush=True)
+                return None
+        except Exception as ex:  # timeout, connexion coupée, etc.
+            print(f"réseau: {ex} — pause 30 s (essai {attempt+1}/4)", flush=True)
+            time.sleep(30)
+    raise QuotaExceeded()
+
+
+class QuotaExceeded(Exception):
+    pass
+
+
 def main():
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10**9
     entries = json.load(open("data/coins.json"))["entries"]
@@ -171,12 +193,7 @@ def main():
                           (e.get("description") or "").split(";")[0].lower())][:3]
             q = (issuer, denom, year, tuple(desc_words))
             if q not in qcache:
-                try:
-                    qcache[q] = search_numista(issuer, denom, year, desc_words)
-                except Exception as ex:
-                    print(f"erreur API: {ex} — pause 60 s", flush=True)
-                    time.sleep(60)
-                    qcache[q] = None
+                qcache[q] = search_with_retry(issuer, denom, year, desc_words)
                 time.sleep(PAUSE)
                 done += 1
             if qcache[q]:
@@ -186,6 +203,8 @@ def main():
                 json.dump(smap, open(OUT, "w"), ensure_ascii=False)
                 json.dump(prog, open(PROGRESS, "w"))
                 print(f"{i+1}/{len(entries)} traités — {matched} images trouvées", flush=True)
+    except QuotaExceeded:
+        print("QUOTA API ÉPUISÉ — arrêt propre, relancer plus tard (la progression est sauvegardée)", flush=True)
     finally:
         json.dump(smap, open(OUT, "w"), ensure_ascii=False)
         json.dump(prog, open(PROGRESS, "w"))

@@ -1,5 +1,5 @@
 /* ===== ROAD MINER — service worker (hors-ligne) ===== */
-const CACHE = "roadminer-v20";
+const CACHE = "roadminer-v21";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const ASSETS = [
   "./app.js",
   "./manifest.webmanifest",
   "./data/coins.json",
+  "./data/numista_map.json",
   "./data/spot-fallback.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
