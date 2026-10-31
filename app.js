@@ -66,6 +66,7 @@ function guidePageUrl(e) {
 
 /* ---------- Correspondance Numista (images pile/face) ---------- */
 let NUMISTA = {};
+let NUMISTA_DETAILS = {};
 
 /* clé identique à entry_key() du script python (numista_match.py) */
 function entryKey(e) {
@@ -82,6 +83,10 @@ async function loadNumistaMap() {
     const res = await fetch("data/numista_map.json");
     if (res.ok) NUMISTA = await res.json();
   } catch { NUMISTA = {}; }
+  try {
+    const res = await fetch("data/numista_details.json");
+    if (res.ok) NUMISTA_DETAILS = await res.json();
+  } catch { NUMISTA_DETAILS = {}; }
 }
 
 /* ---------- Chargement des données ---------- */
@@ -188,6 +193,48 @@ function renderResults(list, query) {
     : `${list.length} résultat${list.length > 1 ? "s" : ""}`;
 }
 
+/* ---------- Fiche caractéristiques Numista ---------- */
+function renderCaracs(nm) {
+  const zone = $("#caracs-zone");
+  const box = $("#caracs");
+  const d = nm && NUMISTA_DETAILS[String(nm.id)];
+  if (!d) { zone.hidden = true; return; }
+  const rows = [
+    ["Émetteur", d.issuer],
+    ["Type", d.type],
+    ["Période", d.years],
+    d.rulers && d.rulers.length ? ["Dirigeant", d.rulers.join(", ")] : null,
+    ["Valeur", d.value],
+    ["Devise", d.currency],
+    ["Composition", d.composition],
+    ["Poids", d.weight != null ? d.weight + " g" : null],
+    ["Diamètre", d.size != null ? d.size + " mm" : null],
+    ["Épaisseur", d.thickness != null ? d.thickness + " mm" : null],
+    ["Forme", d.shape],
+    ["Technique", d.technique],
+    ["Orientation", d.orientation],
+    ["Tranche", d.edge],
+    ["Démonétisée", d.demonetized === true ? "Oui" : d.demonetized === false ? "Non" : null],
+    d.mints && d.mints.length ? ["Atelier", d.mints.join(", ")] : null,
+    d.references && d.references.length ? ["Références", d.references.join(" · ")] : null,
+  ].filter(Boolean);
+  let html = rows.map(([k, v]) =>
+    `<div class="carac-row"><span class="carac-k">${k}</span><span class="carac-v">${escapeHtml(String(v))}</span></div>`
+  ).join("");
+  for (const [label, side] of [["Avers", d.obverse], ["Revers", d.reverse]]) {
+    if (side && (side.description || side.lettering)) {
+      html += `<div class="carac-side"><div class="carac-side-title">${label}</div>`;
+      if (side.description) html += `<p>${escapeHtml(side.description)}</p>`;
+      if (side.lettering) html += `<p class="carac-lettering">${escapeHtml(side.lettering)}</p>`;
+      if (side.engravers && side.engravers.length)
+        html += `<p class="carac-eng">Graveur : ${escapeHtml(side.engravers.join(", "))}</p>`;
+      html += `</div>`;
+    }
+  }
+  box.innerHTML = html;
+  zone.hidden = false;
+}
+
 /* ---------- Détail ---------- */
 function openDetail(e) {
   currentItem = e;
@@ -216,6 +263,7 @@ function openDetail(e) {
     link.href = guidePageUrl(e);
     link.innerHTML = "Voir la page du livre (photos des pièces) &nearr;";
   }
+  renderCaracs(nm);
 
   const tiers = $("#tiers");
   tiers.innerHTML = "";
