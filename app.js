@@ -240,19 +240,17 @@ function renderCaracs(nm) {
   zone.hidden = false;
 }
 
-/* ---------- Images Google en secours (Custom Search) ---------- */
+/* ---------- Images Google en secours (via proxy serveur sécurisé) ---------- */
 async function googleImageFor(e, cb) {
-  if (typeof GOOGLE_CSE_KEY === "undefined" || !GOOGLE_CSE_KEY || !GOOGLE_CSE_CX) return cb(null);
   const key = entryKey(e);
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem("roadminer_gimg")) || {}; } catch {}
   if (key in cache) return cb(cache[key]);
   try {
     const q = encodeURIComponent(entryTitle(e) + " " + (e.series || "") + " coin");
-    const r = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_CSE_KEY}&cx=${GOOGLE_CSE_CX}&searchType=image&num=1&imgSize=medium&q=${q}`);
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/gimg?q=${q}`, { cache: "no-store" });
     const d = await r.json();
-    const url = (d.items && d.items[0] && d.items[0].link) || null;
+    const url = d.url || null;
     cache[key] = url;
     try { localStorage.setItem("roadminer_gimg", JSON.stringify(cache)); } catch {}
     cb(url);
@@ -302,7 +300,7 @@ function initCoinDrag() {
   scene.addEventListener("pointerup", end);
   scene.addEventListener("pointercancel", end);
   (function spin() {
-    if (coinAuto) { coinAngle += 0.18; apply(); } // ~11°/s — rotation lente
+    if (coinAuto) { coinAngle += 1.08; apply(); } // ~65°/s — 65 % de la vitesse d'origine
     requestAnimationFrame(spin);
   })();
 }
