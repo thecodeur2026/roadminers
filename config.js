@@ -5,3 +5,7 @@
    par tous les utilisateurs de l'app. */
 const SUPABASE_URL = "https://okznxgssfvgkidymwwhx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Ya-s_V_aWGBCntVLGnz14Q_jwFFNbJb";
+
+/* Google Programmable Search (images en secours pour les pièces sans photo) */
+const GOOGLE_CSE_KEY = ""; // ← clé API Google Cloud (Custom Search activée)
+const GOOGLE_CSE_CX = "";  // ← ID du moteur programmablesearchengine.google.com

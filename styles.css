@@ -112,6 +112,67 @@ body {
   white-space: nowrap;
 }
 .btn-install:active { transform: scale(.95); }
+.btn-theme {
+  margin-left: auto;
+  background: var(--bg-raised);
+  color: var(--gold); font-size: 18px;
+  border: 1px solid #3a3a3a; border-radius: 50%;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+.btn-theme:active { transform: rotate(40deg) scale(.92); }
+.btn-theme + .btn-install { margin-left: 10px; }
+
+/* ----- Thème clair ----- */
+[data-theme="light"] {
+  --bg: #f6f3ea;
+  --bg-card: #ffffff;
+  --bg-raised: #efe9da;
+  --text: #1a1a1a;
+  --text-dim: #6b6b6b;
+}
+[data-theme="light"] body { background: var(--bg); }
+[data-theme="light"] .app-header {
+  background: linear-gradient(180deg, #ffffff, #f6f3ea);
+  border-bottom-color: #e0d8c4;
+}
+[data-theme="light"] .logo-road { color: #1a1a1a; }
+[data-theme="light"] .cam-sticky { background: var(--bg); }
+[data-theme="light"] .results li,
+[data-theme="light"] .lot-item,
+[data-theme="light"] .melt-card,
+[data-theme="light"] .detail-card,
+[data-theme="light"] .caracs,
+[data-theme="light"] .history-list li {
+  border-color: #e0d8c4;
+  box-shadow: 0 1px 4px rgba(120, 100, 40, .08);
+}
+[data-theme="light"] .spot-chip {
+  background: rgba(255, 255, 255, .9);
+  border-color: #e0d8c4;
+}
+[data-theme="light"] .tier,
+[data-theme="light"] .melt-row-item select,
+[data-theme="light"] .melt-row-item input,
+[data-theme="light"] #search-input,
+[data-theme="light"] .realprice-input input,
+[data-theme="light"] #picker-input,
+[data-theme="light"] .custom-pct-row input {
+  background: #fff;
+  border-color: #ddd3ba;
+  color: #1a1a1a;
+}
+[data-theme="light"] .melt-mat { background: linear-gradient(180deg, #fff8e6, #f3e8c8) !important; }
+[data-theme="light"] .bottom-nav { background: #fff; border-top-color: #e0d8c4; }
+[data-theme="light"] .btn-back { color: var(--gold-dark); }
+[data-theme="light"] .hint-title, [data-theme="light"] .section-title { color: var(--gold-dark); }
+[data-theme="light"] .chip { background: #fff; border-color: #ddd3ba; color: var(--gold-dark); }
+[data-theme="light"] #spot-chart { opacity: .22; }
+[data-theme="light"] #bg-fx { opacity: .35; }
+[data-theme="light"] .picker-panel { background: #fff; border-color: #e0d8c4; }
+[data-theme="light"] .btn-outline { background: rgba(255,255,255,.6); }
 
 /* ----- Vues ----- */
 .view { display: none; padding: 16px; max-width: 720px; margin: 0 auto; }
@@ -171,16 +232,16 @@ body {
   perspective: 900px;
   display: grid; place-items: center;
   margin: 4px 0 18px;
+  touch-action: pan-y;          /* scroll vertical libre, drag horizontal pour la pièce */
+  cursor: grab;
+  user-select: none;
 }
+.coin3d-scene:active { cursor: grabbing; }
 .coin3d {
   position: relative;
   width: 148px; height: 148px;
   transform-style: preserve-3d;
-  animation: coinSpin 3.6s linear infinite;
-}
-@keyframes coinSpin {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
+  /* rotation pilotée en JS (lente + manipulable) */
 }
 .coin3d::before {  /* tranche de la pièce */
   content: "";

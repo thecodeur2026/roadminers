@@ -240,6 +240,73 @@ function renderCaracs(nm) {
   zone.hidden = false;
 }
 
+/* ---------- Images Google en secours (Custom Search) ---------- */
+async function googleImageFor(e, cb) {
+  if (typeof GOOGLE_CSE_KEY === "undefined" || !GOOGLE_CSE_KEY || !GOOGLE_CSE_CX) return cb(null);
+  const key = entryKey(e);
+  let cache = {};
+  try { cache = JSON.parse(localStorage.getItem("roadminer_gimg")) || {}; } catch {}
+  if (key in cache) return cb(cache[key]);
+  try {
+    const q = encodeURIComponent(entryTitle(e) + " " + (e.series || "") + " coin");
+    const r = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_CSE_KEY}&cx=${GOOGLE_CSE_CX}&searchType=image&num=1&imgSize=medium&q=${q}`);
+    const d = await r.json();
+    const url = (d.items && d.items[0] && d.items[0].link) || null;
+    cache[key] = url;
+    try { localStorage.setItem("roadminer_gimg", JSON.stringify(cache)); } catch {}
+    cb(url);
+  } catch { cb(null); }
+}
+
+/* ---------- Thème clair / sombre ---------- */
+function initTheme() {
+  const btn = $("#btn-theme");
+  const apply = (t) => {
+    document.documentElement.dataset.theme = t;
+    btn.textContent = t === "light" ? "☾" : "☀";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = t === "light" ? "#f6f3ea" : "#0a0a0a";
+  };
+  let t = "dark";
+  try { t = localStorage.getItem("roadminer_theme") || "dark"; } catch {}
+  apply(t);
+  btn.addEventListener("click", () => {
+    t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    try { localStorage.setItem("roadminer_theme", t); } catch {}
+    apply(t);
+  });
+}
+
+/* ---------- Pièce 3D : rotation lente + manipulation doigt/souris ---------- */
+let coinAngle = 0, coinAuto = true, coinDragX = null;
+
+function initCoinDrag() {
+  const coin = $(".coin3d");
+  const scene = $(".coin3d-scene");
+  if (!coin || !scene || initCoinDrag._done) return;
+  initCoinDrag._done = true;
+  const apply = () => { coin.style.transform = `rotateY(${coinAngle}deg)`; };
+  scene.addEventListener("pointerdown", (e) => {
+    coinAuto = false;
+    coinDragX = e.clientX;
+    try { scene.setPointerCapture(e.pointerId); } catch {}
+  });
+  scene.addEventListener("pointermove", (e) => {
+    if (coinDragX === null) return;
+    coinAngle += (e.clientX - coinDragX) * 0.6;
+    coinDragX = e.clientX;
+    apply();
+  });
+  const end = () => { coinDragX = null; coinAuto = true; };
+  scene.addEventListener("pointerup", end);
+  scene.addEventListener("pointercancel", end);
+  (function spin() {
+    if (coinAuto) { coinAngle += 0.18; apply(); } // ~11°/s — rotation lente
+    requestAnimationFrame(spin);
+  })();
+}
+
 /* ---------- Détail ---------- */
 function openDetail(e) {
   currentItem = e;
@@ -259,21 +326,33 @@ function openDetail(e) {
   $("#detail-title").textContent = entryTitle(e);
   $("#detail-ref").textContent = entryRef(e) + (e.page ? `  •  ${isCatalog ? "Catalogue" : "Guide"} p. ${e.page}` : "");
   $("#detail-price").textContent = e.price != null ? fmt(e.price) : "—";
-  // référence externe : Numista, sinon mint.ca, sinon page du livre
+  // référence externe : Numista, sinon mint.ca, sinon rien (bouton caché)
   const mint = MINT[entryKey(e)];
   const img = nm && nm.obv ? nm : (mint && mint.obv ? mint : null);
   const link = $("#guide-page-link");
   if (nm && nm.id) {
+    link.hidden = false;
     link.href = "https://en.numista.com/catalogue/pieces" + nm.id + ".html";
     link.innerHTML = "Voir la référence sur Numista &nearr;";
   } else if (mint && mint.url) {
+    link.hidden = false;
     link.href = mint.url;
     link.innerHTML = "Voir la fiche officielle sur mint.ca &nearr;";
   } else {
-    link.href = guidePageUrl(e);
-    link.innerHTML = "Voir la page du livre (photos des pièces) &nearr;";
+    link.hidden = true;
   }
   renderCaracs(nm);
+
+  // prix réel : mint.ca si la pièce y est, sinon recherche Google
+  const pcLink = $("#pricecharting-link");
+  if (mint && mint.url) {
+    pcLink.href = mint.url;
+    pcLink.innerHTML = "Prix officiel sur mint.ca &nearr;";
+  } else {
+    pcLink.href = "https://www.google.com/search?q=" +
+      encodeURIComponent(entryTitle(e) + " " + (e.series || "") + " prix");
+    pcLink.innerHTML = "Rechercher le prix sur Google &nearr;";
+  }
 
   const tiers = $("#tiers");
   tiers.innerHTML = "";
@@ -285,20 +364,29 @@ function openDetail(e) {
     tiers.appendChild(div);
   }
 
-  const q = encodeURIComponent(entryTitle(e) + " " + (e.series || ""));
-  $("#pricecharting-link").href = "https://www.pricecharting.com/search-products?q=" + q;
-
-  // pièce 3D : vraies images Numista si disponibles, sinon faces dorées
+  // pièce 3D : vraies images Numista / mint.ca, sinon Google, sinon faces dorées
   const title = entryTitle(e);
   const front = $("#coin-front"), back = $("#coin-back");
-  front.classList.toggle("has-img", !!(img && img.obv));
-  back.classList.toggle("has-img", !!(img && img.rev));
-  front.style.backgroundImage = img && img.obv ? `url("${img.obv}")` : "";
-  back.style.backgroundImage = img && img.rev ? `url("${img.rev}")` : "";
+  const applyImg = (obv, rev) => {
+    front.classList.toggle("has-img", !!obv);
+    back.classList.toggle("has-img", !!rev);
+    front.style.backgroundImage = obv ? `url("${obv}")` : "";
+    back.style.backgroundImage = rev ? `url("${rev}")` : "";
+  };
   if (img && img.obv && img.rev) {
+    applyImg(img.obv, img.rev);
     front.innerHTML = `<div class="cf-badge">${escapeHtml(title.length > 36 ? title.slice(0, 36) + "…" : title)}</div>`;
     back.innerHTML = `<div class="cf-badge">${e.price != null ? fmt(e.price) : ""}</div>`;
   } else {
+    // secours : image Google (si configurée) — sinon faces dorées
+    googleImageFor(e, (url) => {
+      if (url && currentItem === e) {
+        applyImg(url, url);
+        front.innerHTML = `<div class="cf-badge">${escapeHtml(title.slice(0, 36))}</div>`;
+        back.innerHTML = `<div class="cf-badge">${e.price != null ? fmt(e.price) : ""}</div>`;
+      }
+    });
+    applyImg("", "");
     front.innerHTML = `
       <div class="cf-logo">R</div>
       <div class="cf-title">${escapeHtml(title.length > 42 ? title.slice(0, 42) + "…" : title)}</div>
@@ -1150,6 +1238,8 @@ function initInstall() {
   initBgFx();                    // arrière-plan animé
   addEventListener("resize", () => drawSpotChart());
   initInstall();                 // bouton d'installation PWA
+  initTheme();                   // thème clair / sombre
+  initCoinDrag();                // pièce 3D manipulable
   registerSW();
   startCamera(); // la caméra s'active dès l'ouverture
 })();
