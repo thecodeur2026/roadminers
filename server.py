@@ -127,6 +127,14 @@ def get_spot_data():
         data["spot"], data["usdcad"] = scrape_spot()
     except Exception as e:
         data["errors"].append(f"spot: {e}")
+    # palladium : non couvert par Kitco refining → calculé au spot CAD/gramme
+    xpd = data["spot"].get("XPD") or {}
+    if xpd.get("cad_g"):
+        g = xpd["cad_g"]
+        data["materials"].append({"name": "Palladium 950 (calculé au spot)", "tiers": [
+            {"min_g": 0, "individual": round(g * 0.95, 2), "wholesale": round(g * 0.95, 2)}]})
+        data["materials"].append({"name": "Palladium pur 999 (calculé au spot)", "tiers": [
+            {"min_g": 0, "individual": round(g * 0.999, 2), "wholesale": round(g * 0.999, 2)}]})
     try:
         data["history"] = scrape_history()
     except Exception as e:

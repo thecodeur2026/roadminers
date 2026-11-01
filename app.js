@@ -472,8 +472,14 @@ function pickerSearch(q) {
 }
 
 /* ---------- Cours en direct + calculateur de fonte ---------- */
-let SPOT = null; // {updated, materials, spot, usdcad}
+let SPOT = null; // {updated, materials, spot, usdcad, history}
 const METAL_LABELS = [["XAU", "Or"], ["XAG", "Argent"], ["XPT", "Platine"], ["XPD", "Palladium"]];
+const METAL_INFO = {
+  XAU: { label: "OR", code: "XAU/USD", color: "212,175,55" },
+  XAG: { label: "ARGENT", code: "XAG/USD", color: "190,190,205" },
+  XPT: { label: "PLATINE", code: "XPT/USD", color: "150,220,200" },
+  XPD: { label: "PALLADIUM", code: "XPD/USD", color: "230,170,120" },
+};
 
 async function loadSpot() {
   // 1) affichage IMMÉDIAT depuis le cache local (aucune attente réseau)
@@ -521,21 +527,73 @@ async function loadSpot() {
   drawSpotChart();
 }
 
+function metalChange(k) {
+  const pts = (SPOT.history || {})[k];
+  if (!pts || pts.length < 2) return { pct: 0, abs: 0 };
+  const last = pts[pts.length - 1][1];
+  const ref = pts.length > 25 ? pts[pts.length - 25][1] : pts[0][1]; // ~24 h
+  return { pct: ref ? ((last - ref) / ref) * 100 : 0, abs: last - ref };
+}
+
+function updateLiveSince() {
+  const el = $("#live-since");
+  if (!el || !SPOT || !SPOT.updated) return;
+  const t = new Date(SPOT.updated).getTime();
+  if (!isNaN(t)) el.textContent = Math.max(0, Math.round((Date.now() - t) / 1000));
+}
+
 function renderSpotTicker() {
   const el = $("#spot-ticker");
   if (!SPOT || !SPOT.spot) { el.innerHTML = ""; return; }
-  let when = "";
-  if (SPOT.updated) {
-    const d = new Date(SPOT.updated);
-    if (!isNaN(d)) when = " · " + d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  }
-  el.innerHTML = METAL_LABELS.map(([k, label]) => {
+  el.innerHTML = METAL_LABELS.map(([k]) => {
     const m = SPOT.spot[k];
     if (!m || !m.usd_oz) return "";
-    return `<div class="spot-chip"><span class="spot-name">${label}</span>
-      <span class="spot-usd">${fmt(m.usd_oz)} <small>US/oz</small></span>
-      <span class="spot-cad">${fmt(m.cad_oz)} <small>CA/oz</small></span></div>`;
-  }).join("") + `<div class="spot-when">Cours en direct${when}</div>`;
+    const info = METAL_INFO[k];
+    const { pct, abs } = metalChange(k);
+    const up = pct >= 0;
+    return `<div class="spot-chip">
+      <div class="spot-chip-head">
+        <span class="spot-dot" style="background:rgb(${info.color})"></span>
+        <div><div class="spot-name">${info.label}</div><div class="spot-code">${info.code}</div></div>
+      </div>
+      <div class="spot-big">${fmt(m.usd_oz)}</div>
+      <div class="spot-changes">
+        <span class="chg ${up ? "up" : "down"}">${up ? "&#8599;" : "&#8600;"} ${up ? "+" : ""}${pct.toFixed(2)} %</span>
+        <span class="chg ${up ? "up" : "down"}">${up ? "+" : "&minus;"}${fmt(Math.abs(abs))}</span>
+      </div>
+      <div class="spot-cad">${fmt(m.cad_oz)} <small>CA/oz</small></div>
+      <canvas class="spark" data-metal="${k}"></canvas>
+    </div>`;
+  }).join("") + `<div class="spot-when"><span class="live-dot"></span>LIVE &middot; Mis à jour il y a <span id="live-since">0</span> s</div>`;
+  document.querySelectorAll(".spark").forEach((cv) => drawSpark(cv));
+  updateLiveSince();
+}
+
+function drawSpark(cv) {
+  const k = cv.dataset.metal;
+  const pts = (SPOT.history || {})[k];
+  if (!pts || pts.length < 3) return;
+  const w = (cv.width = cv.offsetWidth), h = (cv.height = cv.offsetHeight);
+  const ctx = cv.getContext("2d");
+  const vals = pts.map((p) => p[1]);
+  const min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
+  const color = METAL_INFO[k].color;
+  ctx.clearRect(0, 0, w, h);
+  ctx.beginPath();
+  pts.forEach((p, i) => {
+    const x = (i / (pts.length - 1)) * w;
+    const y = h - 3 - ((p[1] - min) / span) * (h - 8);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = `rgba(${color}, .95)`;
+  ctx.lineWidth = 1.7;
+  ctx.stroke();
+  ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, `rgba(${color}, .22)`);
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g;
+  ctx.fill();
 }
 
 /* --- Calculateur multi-matériaux --- */
@@ -761,22 +819,16 @@ function goldTick() {
   else { fxRunning = false; ctx.clearRect(0, 0, w, h); }
 }
 
-/* ---------- Graphique d'évolution (derrière les cours) ---------- */
-function drawSpotChart() {
-  const cv = $("#spot-chart");
-  if (!cv || !SPOT) return;
-  cv.width = innerWidth;
-  cv.height = innerHeight;
-  const ctx = cv.getContext("2d");
-  const w = cv.width, h = cv.height;
-  ctx.clearRect(0, 0, w, h);
+/* ---------- Graphique d'évolution organique (fond du site) ---------- */
+let chartSeries = null, chartRunning = false;
 
-  let hist = SPOT.history || {};
-  // secours : accumulation locale d'échantillons au fil des rafraîchissements
+function drawSpotChart() {
+  // prépare les séries normalisées puis lance l'animation organique
+  let hist = (SPOT && SPOT.history) || {};
   if (!Object.values(hist).some((s) => s && s.length >= 4)) {
     try {
       const acc = JSON.parse(localStorage.getItem("roadminer_hist")) || [];
-      if (SPOT.spot?.XAU?.usd_oz) {
+      if (SPOT && SPOT.spot?.XAU?.usd_oz) {
         acc.push({
           t: Date.now(),
           XAU: SPOT.spot.XAU.usd_oz, XAG: SPOT.spot.XAG?.usd_oz,
@@ -790,30 +842,62 @@ function drawSpotChart() {
       }
     } catch { return; }
   }
-
-  const colors = { XAU: "212,175,55", XAG: "200,200,210", XPT: "150,220,200", XPD: "230,170,120" };
+  const series = [];
+  let phase = 0;
   for (const [metal, pts] of Object.entries(hist)) {
     if (!pts || pts.length < 3) continue;
     const vals = pts.map((p) => p[1]);
-    const min = Math.min(...vals), max = Math.max(...vals);
-    const span = max - min || 1;
-    ctx.beginPath();
-    pts.forEach((p, i) => {
-      const x = (i / (pts.length - 1)) * w;
-      const y = h - 6 - ((p[1] - min) / span) * (h - 14);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    const min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
+    series.push({
+      color: (METAL_INFO[metal] || { color: "212,175,55" }).color,
+      pts: vals.map((v) => (v - min) / span),
+      ph: (phase += 1.7),
     });
-    ctx.strokeStyle = `rgba(${colors[metal] || "212,175,55"}, .55)`;
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-    // zone dégradée sous la courbe
-    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, `rgba(${colors[metal] || "212,175,55"}, .10)`);
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grad;
-    ctx.fill();
   }
+  if (!series.length) return;
+  chartSeries = series;
+  if (!chartRunning) {
+    chartRunning = true;
+    animateChart();
+  }
+}
+
+function animateChart() {
+  const cv = $("#spot-chart");
+  if (!cv) { chartRunning = false; return; }
+  const ctx = cv.getContext("2d");
+  let phase = Math.random() * 10;
+  (function frame() {
+    if (!chartSeries) { chartRunning = false; return; }
+    if (cv.width !== innerWidth || cv.height !== innerHeight) {
+      cv.width = innerWidth;
+      cv.height = innerHeight;
+    }
+    const w = cv.width, h = cv.height;
+    ctx.clearRect(0, 0, w, h);
+    phase += 0.006;
+    for (const s of chartSeries) {
+      const n = s.pts.length;
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const x = (i / (n - 1)) * (w + 80) - 40 + Math.sin(phase * 0.5 + s.ph) * 6;
+        const y = h * 0.5 - (s.pts[i] - 0.5) * h * 0.72
+          + Math.sin(phase + i * 0.14 + s.ph) * 9
+          + Math.cos(phase * 0.7 + i * 0.05 + s.ph * 2) * 5;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(${s.color}, .5)`;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+      ctx.lineTo(w + 60, h); ctx.lineTo(-60, h); ctx.closePath();
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, `rgba(${s.color}, .07)`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  })();
 }
 
 /* ---------- Arrière-plan animé (poussière d'or) ---------- */
@@ -1060,7 +1144,8 @@ function initInstall() {
   await loadData();
   bindEvents();
   loadSpot();                    // cours en direct
-  setInterval(loadSpot, 300000); // rafraîchissement toutes les 5 min
+  setInterval(loadSpot, 60000);  // rafraîchissement chaque minute
+  setInterval(updateLiveSince, 1000); // compteur LIVE « il y a X s »
   initGoldFx();                  // effet pluie d'or
   initBgFx();                    // arrière-plan animé
   addEventListener("resize", () => drawSpotChart());

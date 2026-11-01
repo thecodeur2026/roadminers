@@ -106,6 +106,15 @@ Deno.serve(async (req) => {
   let spot = {}, rate = null, history = {};
   try { materials = await scrapeKitco(); } catch (e) { errors.push(`kitco: ${e}`); }
   try { ({ spot, rate } = await scrapeSpot()); } catch (e) { errors.push(`spot: ${e}`); }
+  // palladium : non couvert par Kitco refining → calculé au spot CAD/gramme
+  const xpd = (spot as Record<string, { cad_g?: number }>).XPD;
+  if (xpd && xpd.cad_g) {
+    const g = xpd.cad_g;
+    materials.push(
+      { name: "Palladium 950 (calculé au spot)", tiers: [{ min_g: 0, individual: Math.round(g * 0.95 * 100) / 100, wholesale: Math.round(g * 0.95 * 100) / 100 }] },
+      { name: "Palladium pur 999 (calculé au spot)", tiers: [{ min_g: 0, individual: Math.round(g * 0.999 * 100) / 100, wholesale: Math.round(g * 0.999 * 100) / 100 }] },
+    );
+  }
   try { history = await scrapeHistory(); } catch (e) { errors.push(`history: ${e}`); }
   const body = JSON.stringify({
     updated: new Date().toISOString(),
