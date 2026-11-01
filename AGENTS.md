@@ -61,6 +61,12 @@ data/coins.json            ← base fusionnée (8 361 entrées) — GÉNÉRÉ, v
 data/spot-fallback.json    ← secours hors-ligne des cours
 data/raw/pages-*.json      ← transcription Ancan.pdf (guide d'achat, 112 p.)
 data/raw2/pages2-*.json    ← transcription Ancan2.pdf (catalogue, 556 p.)
+data/numista_map.json      ← correspondances entrées → Numista (4 371 clés)
+data/numista_details.json  ← caractéristiques Numista /types/{id} (agents 1-3)
+data/mint_map.json         ← correspondances entrées → mint.ca (536 clés, agent 4)
+data/mint_products.json    ← crawl brut des 4 308 pages produits mint.ca
+supabase/mint_crawl.py     ← crawler mint.ca (reprend où il en était)
+supabase/mint_match.py     ← matching anti-faux-positifs → data/mint_map.json
 pages/  pages2/            ← scans rendus en images (gitignorés, ~1 Go)
 Ancan.pdf  Ancan2.pdf      ← sources scannées (gitignorés, ~500 Mo)
 supabase/schema.sql        ← tables entries + spot_cache (déjà exécuté)
@@ -88,6 +94,20 @@ price, uncertain?, contentTable?}`. `price` = prix d'achat (guide) ou VALEUR
 **Trous connus** (pages absentes du scan Ancan2, pas de données possibles) :
 pages catalogue 72-73, 76-77, 284-285, 293. Le reste des « trous » = pages photos
 sans tableau (normal).
+
+## Enrichissement externe (Numista + mint.ca)
+
+- `data/numista_map.json` : 4 371 entrées liées à un type Numista (id, titre,
+  photos obv/rev). Clé = `source|page|section|category|series|date|description|price`
+  (price formaté Python : None→"None", entiers→"X.0").
+- `data/mint_map.json` : 536 entrées canadiennes NON couvertes par Numista liées
+  à une page produit officielle mint.ca (titre, url, photos `_obv`/`_rev`,
+  specs : composition/poids/diamètre/tirage). Régénérer :
+  `python3 supabase/mint_crawl.py` puis `python3 supabase/mint_match.py`.
+  mint.ca ne couvre que ~2010+ (produits encore en ligne) : les pièces de
+  circulation plus anciennes n'y ont pas de page. Matching strict : année +
+  dénomination (Face Value) + métal cohérent + mot-clé distinctif unique ;
+  tout doute → pas de lien.
 
 ## Supabase — état
 

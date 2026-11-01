@@ -9,11 +9,11 @@ Usage : NUMISTA_API_KEY=... python3 supabase/numista_details.py
 """
 import json
 import os
+import sys
 import time
 import urllib.request
 
 KEY = os.environ["NUMISTA_API_KEY"]
-OUT = "data/numista_details.json"
 PAUSE = 0.35
 
 
@@ -62,9 +62,16 @@ def curate(t):
 def main():
     smap = json.load(open("data/numista_map.json"))
     ids = sorted({v["id"] for v in smap.values()})
-    details = json.load(open(OUT)) if os.path.exists(OUT) else {}
+    # découpage optionnel : python3 numista_details.py [offset] [count] [fichier_sortie]
+    offset = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    count = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    out_file = sys.argv[3] if len(sys.argv) > 3 else "data/numista_details.json"
+    details = json.load(open(out_file)) if os.path.exists(out_file) else {}
     todo = [i for i in ids if str(i) not in details]
-    print(f"{len(ids)} ids uniques, {len(todo)} à enrichir")
+    if count is None:
+        count = len(todo)
+    todo = todo[offset:offset + count]
+    print(f"{len(ids)} ids uniques, lot [{offset}:{offset+count}] = {len(todo)} à enrichir → {out_file}")
     done = 0
     try:
         for nid in todo:
@@ -88,10 +95,10 @@ def main():
             done += 1
             time.sleep(PAUSE)
             if done % 40 == 0:
-                json.dump(details, open(OUT, "w"), ensure_ascii=False)
+                json.dump(details, open(out_file, "w"), ensure_ascii=False)
                 print(f"{done}/{len(todo)} enrichis", flush=True)
     finally:
-        json.dump(details, open(OUT, "w"), ensure_ascii=False)
+        json.dump(details, open(out_file, "w"), ensure_ascii=False)
     print(f"TERMINE: {len(details)}/{len(ids)} pièces enrichies")
 
 

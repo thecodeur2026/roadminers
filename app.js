@@ -67,6 +67,7 @@ function guidePageUrl(e) {
 /* ---------- Correspondance Numista (images pile/face) ---------- */
 let NUMISTA = {};
 let NUMISTA_DETAILS = {};
+let MINT = {};
 
 /* clé identique à entry_key() du script python (numista_match.py) */
 function entryKey(e) {
@@ -87,6 +88,10 @@ async function loadNumistaMap() {
     const res = await fetch("data/numista_details.json");
     if (res.ok) NUMISTA_DETAILS = await res.json();
   } catch { NUMISTA_DETAILS = {}; }
+  try {
+    const res = await fetch("data/mint_map.json");
+    if (res.ok) MINT = await res.json();
+  } catch { MINT = {}; }
 }
 
 /* ---------- Chargement des données ---------- */
@@ -254,11 +259,16 @@ function openDetail(e) {
   $("#detail-title").textContent = entryTitle(e);
   $("#detail-ref").textContent = entryRef(e) + (e.page ? `  •  ${isCatalog ? "Catalogue" : "Guide"} p. ${e.page}` : "");
   $("#detail-price").textContent = e.price != null ? fmt(e.price) : "—";
-  // référence Numista si liée, sinon page du livre
+  // référence externe : Numista, sinon mint.ca, sinon page du livre
+  const mint = MINT[entryKey(e)];
+  const img = nm && nm.obv ? nm : (mint && mint.obv ? mint : null);
   const link = $("#guide-page-link");
   if (nm && nm.id) {
     link.href = "https://en.numista.com/catalogue/pieces" + nm.id + ".html";
     link.innerHTML = "Voir la référence sur Numista &nearr;";
+  } else if (mint && mint.url) {
+    link.href = mint.url;
+    link.innerHTML = "Voir la fiche officielle sur mint.ca &nearr;";
   } else {
     link.href = guidePageUrl(e);
     link.innerHTML = "Voir la page du livre (photos des pièces) &nearr;";
@@ -281,11 +291,11 @@ function openDetail(e) {
   // pièce 3D : vraies images Numista si disponibles, sinon faces dorées
   const title = entryTitle(e);
   const front = $("#coin-front"), back = $("#coin-back");
-  front.classList.toggle("has-img", !!(nm && nm.obv));
-  back.classList.toggle("has-img", !!(nm && nm.rev));
-  front.style.backgroundImage = nm && nm.obv ? `url("${nm.obv}")` : "";
-  back.style.backgroundImage = nm && nm.rev ? `url("${nm.rev}")` : "";
-  if (nm && nm.obv && nm.rev) {
+  front.classList.toggle("has-img", !!(img && img.obv));
+  back.classList.toggle("has-img", !!(img && img.rev));
+  front.style.backgroundImage = img && img.obv ? `url("${img.obv}")` : "";
+  back.style.backgroundImage = img && img.rev ? `url("${img.rev}")` : "";
+  if (img && img.obv && img.rev) {
     front.innerHTML = `<div class="cf-badge">${escapeHtml(title.length > 36 ? title.slice(0, 36) + "…" : title)}</div>`;
     back.innerHTML = `<div class="cf-badge">${e.price != null ? fmt(e.price) : ""}</div>`;
   } else {
