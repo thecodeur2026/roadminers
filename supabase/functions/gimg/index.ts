@@ -18,12 +18,29 @@ Deno.serve(async (req) => {
 
     const key = Deno.env.get("GOOGLE_CSE_KEY");
     const cx = Deno.env.get("GOOGLE_CSE_CX");
-    if (!key || !cx) throw new Error("secrets Google non configurés");
+    let img = null;
 
-    const api = "https://www.googleapis.com/customsearch/v1?key=" + key +
-      "&cx=" + cx + "&searchType=image&num=1&imgSize=medium&q=" + encodeURIComponent(q);
-    const d = await (await fetch(api)).json();
-    const img = d?.items?.[0]?.link ?? null;
+    // 1) Google Custom Search (si la clé est active)
+    if (key && cx) {
+      try {
+        const api = "https://www.googleapis.com/customsearch/v1?key=" + key +
+          "&cx=" + cx + "&searchType=image&num=1&imgSize=medium&q=" + encodeURIComponent(q);
+        const d = await (await fetch(api)).json();
+        img = d?.items?.[0]?.link ?? null;
+      } catch { /* fallback ci-dessous */ }
+    }
+
+    // 2) Secours : Wikimedia Commons (sans clé)
+    if (!img) {
+      const wm = "https://commons.wikimedia.org/w/api.php?action=query&format=json" +
+        "&generator=search&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=500" +
+        "&gsrsearch=" + encodeURIComponent(q);
+      const d = await (await fetch(wm, {
+        headers: { "User-Agent": "RoadMiners/1.0 (contact: roadminers.com)" },
+      })).json();
+      const pages = d?.query?.pages ? Object.values(d.query.pages) : [];
+      img = pages[0]?.imageinfo?.[0]?.thumburl ?? pages[0]?.imageinfo?.[0]?.url ?? null;
+    }
 
     return new Response(JSON.stringify({ url: img }), {
       headers: { ...jsonHeaders, "Cache-Control": "public, max-age=86400" },
