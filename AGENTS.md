@@ -9,11 +9,13 @@ PWA (Progressive Web App) d'évaluation d'articles pour une entreprise d'achat
 d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanilla.
 
 **Fonctionnalités :**
-- Caméra au démarrage : photo de pièces/billets → identification assistée dans
-  la base → lot multi-articles avec totaux
-- Recherche instantanée (fr/en, synonymes : morgan→liberty head, quarter→25¢...)
+- Recherche instantanée dès l'ouverture (fr/en, synonymes : morgan→liberty head,
+  quarter→25¢...) : taper le nom de la pièce → prix, paliers, photos (pièce 3D
+  pile/face) et caractéristiques. **Plus de caméra** (retirée nov. 2025) : tout
+  passe par la recherche texte.
 - 8 paliers de prix : 5 %, 10 %, 15 %, 25 %, 35 %, 50 %, 75 %, 100 %
 - Calculateur de fonte : matériau + grammes → prix d'achat max (Kitco) + paliers
+  (sur la page d'accueil, sous les cours en direct)
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
 - Historique local des évaluations (localStorage)
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
@@ -131,12 +133,18 @@ sans tableau (normal).
 
 ## Problèmes connus / améliorations possibles
 
-- « Voir la page du livre » (`guidePageUrl`) pointe vers `pages/`/`pages2/`
-  qui ne sont PAS déployées sur Vercel (trop lourdes) → lien 404 en ligne,
-  fonctionne en local. Amélioration : héberger des versions JPEG compressées
-  dans Supabase Storage.
-- La reconnaissance photo automatique des pièces n'existe pas (par design :
-  photo → recherche assistée). Ne pas promettre de reconnaissance automatique.
+- Le lien « Voir la référence » de la fiche détail pointe vers Numista ou
+  mint.ca. Les scans `pages/`/`pages2/` ne sont PAS déployés sur Vercel (trop
+  lourds) — amélioration possible : héberger des versions JPEG compressées dans
+  Supabase Storage et les utiliser comme image de secours.
+- ~3 700 entrées (sur 8 361) n'ont aucune correspondance Numista ni mint.ca :
+  pour celles-là, pas de vraie photo ni de caractéristiques — la pièce 3D
+  affiche des faces dorées génériques. Élargir la couverture demanderait un
+  nouvel enrichissement.
+- 2 types Numista (ids 484323, 603607) et 39 fiches mint.ca n'ont pas de photo
+  côté source — rien à afficher de plus.
+- La reconnaissance photo automatique des pièces n'existe pas (par design) ;
+  la caméra elle-même a été retirée (nov. 2025) — tout passe par la recherche.
 - Les ~68 entrées `uncertain` mériteraient une re-vérification sur les PDF.
 
 ## Reprendre après une réinitialisation

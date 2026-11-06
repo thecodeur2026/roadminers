@@ -27,20 +27,10 @@
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
-@keyframes scanline {
-  0% { top: 4%; opacity: 0; }
-  12% { opacity: .9; }
-  88% { opacity: .9; }
-  100% { top: 94%; opacity: 0; }
-}
 @keyframes pulseRing {
   0% { box-shadow: 0 0 0 0 rgba(212,175,55,.45); }
   70% { box-shadow: 0 0 0 14px rgba(212,175,55,0); }
   100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
-}
-@keyframes slideUp {
-  from { transform: translateY(60px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
 @keyframes toastIn {
   from { transform: translateX(-50%) translateY(20px); opacity: 0; }
@@ -139,9 +129,7 @@ body {
   border-bottom-color: #e0d8c4;
 }
 [data-theme="light"] .logo-road { color: #1a1a1a; }
-[data-theme="light"] .cam-sticky { background: var(--bg); }
 [data-theme="light"] .results li,
-[data-theme="light"] .lot-item,
 [data-theme="light"] .melt-card,
 [data-theme="light"] .detail-card,
 [data-theme="light"] .caracs,
@@ -158,7 +146,6 @@ body {
 [data-theme="light"] .melt-row-item input,
 [data-theme="light"] #search-input,
 [data-theme="light"] .realprice-input input,
-[data-theme="light"] #picker-input,
 [data-theme="light"] .custom-pct-row input {
   background: #fff;
   border-color: #ddd3ba;
@@ -171,7 +158,6 @@ body {
 [data-theme="light"] .chip { background: #fff; border-color: #ddd3ba; color: var(--gold-dark); }
 [data-theme="light"] #spot-chart { opacity: .22; }
 [data-theme="light"] #bg-fx { opacity: .35; }
-[data-theme="light"] .picker-panel { background: #fff; border-color: #e0d8c4; }
 [data-theme="light"] .btn-outline { background: rgba(255,255,255,.6); }
 
 /* ----- Vues ----- */
@@ -289,7 +275,7 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* ----- Caractéristiques Numista ----- */
+/* ----- Caractéristiques (Numista / Monnaie royale) ----- */
 .caracs {
   background: var(--bg-card);
   border: 1px solid #2c2c2c;
@@ -373,13 +359,6 @@ body {
 .tier .val { display: block; color: var(--gold-light); font-size: 15px; font-weight: 800; margin-top: 4px; }
 .tier.full { border-color: var(--gold); background: rgba(212,175,55,.08); }
 
-/* ----- Photo ----- */
-.photo-zone { display: flex; flex-direction: column; gap: 10px; }
-.photo-preview {
-  width: 100%; border-radius: var(--radius);
-  border: 1px solid #333;
-}
-
 /* ----- Prix réel ----- */
 .realprice-zone { display: flex; flex-direction: column; gap: 12px; }
 .realprice-input label { display: block; color: var(--text-dim); font-size: 13px; margin-bottom: 6px; }
@@ -437,76 +416,7 @@ body {
 .nav-btn.active { color: var(--gold); }
 .nav-icon { font-size: 19px; }
 
-/* ----- Scanner / caméra ----- */
-.cam-sticky {
-  position: sticky;
-  top: 0;                 /* collé en haut de la zone scrollable */
-  z-index: 15;
-  background: var(--bg);
-  padding-bottom: 6px;
-}
-.cam-frame {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-  height: clamp(190px, 30vh, 280px);  /* compact : laisse la place aux infos */
-  background: #000;
-  border: 1px solid #2c2c2c;
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-/* ligne de balayage du viseur */
-.cam-frame::after {
-  content: "";
-  position: absolute; left: 6%; right: 6%; top: 4%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
-  box-shadow: 0 0 12px rgba(212,175,55,.8);
-  animation: scanline 3.2s ease-in-out infinite;
-  pointer-events: none;
-}
-#cam { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cam-off {
-  position: absolute; inset: 0;
-  display: grid; place-content: center; gap: 12px;
-  text-align: center; color: var(--text-dim);
-  background: #0d0d0d;
-}
-.cam-actions { display: flex; justify-content: center; margin: 12px 0 4px; }
-.btn-capture {
-  width: 68px; height: 68px; border-radius: 50%;
-  border: 4px solid var(--gold);
-  background: radial-gradient(circle at 35% 35%, var(--gold-light), var(--gold-dark));
-  color: transparent; font-size: 8px;
-  cursor: pointer;
-  animation: pulseRing 2.4s ease-out infinite;
-}
-.btn-capture:active { transform: scale(.93); transition: transform .1s; }
-
-.lot-list { display: flex; flex-direction: column; gap: 8px; }
-.lot-item {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg-card);
-  border: 1px solid #262626;
-  border-radius: 10px;
-  padding: 8px;
-  cursor: pointer;
-  animation: popIn .28s ease both;
-  transition: border-color .15s ease, transform .15s ease;
-}
-.lot-item:active { transform: scale(.98); }
-.lot-item.matched { border-left: 3px solid var(--green); }
-.lot-thumb {
-  width: 64px; height: 64px; object-fit: cover;
-  border-radius: 8px; border: 1px solid #333; flex-shrink: 0;
-}
-.lot-info { flex: 1; min-width: 0; }
-.lot-title { font-weight: 700; font-size: 14px; }
-.lot-title.unidentified { color: var(--gold-light); font-weight: 600; }
-.lot-sub { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
-.lot-price { color: var(--gold); font-weight: 800; margin-top: 2px; }
-.lot-del {
+.row-del {
   background: none; border: none; color: var(--text-dim);
   font-size: 22px; padding: 4px 10px; cursor: pointer; flex-shrink: 0;
 }
@@ -686,39 +596,6 @@ body {
 }
 .custom-pct-sign { color: var(--gold); font-weight: 800; font-size: 16px; }
 .custom-pct-row strong { color: var(--gold); font-size: 20px; }
-
-/* ----- Modal identification ----- */
-.picker {
-  position: fixed; inset: 0; z-index: 40;
-  background: rgba(0,0,0,.75);
-  display: flex; align-items: flex-end; justify-content: center;
-}
-.picker[hidden] { display: none; }
-.picker-panel {
-  background: var(--bg-card);
-  border: 1px solid #333; border-bottom: none;
-  border-radius: 18px 18px 0 0;
-  width: 100%; max-width: 720px; max-height: 92vh;
-  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
-  overflow-y: auto;
-  animation: slideUp .28s ease both;
-}
-.picker-head {
-  display: flex; justify-content: space-between; align-items: center;
-  color: var(--gold); margin-bottom: 10px;
-}
-.picker-photo {
-  width: 100%; max-height: 180px; object-fit: contain;
-  border-radius: 10px; background: #000;
-  margin-bottom: 10px;
-}
-#picker-input {
-  width: 100%; padding: 12px 14px; font-size: 16px;
-  color: var(--text); background: var(--bg-raised);
-  border: 1px solid #333; border-radius: 10px; outline: none;
-  margin-bottom: 8px;
-}
-#picker-input:focus { border-color: var(--gold); }
 
 /* ----- Toast ----- */
 .toast {

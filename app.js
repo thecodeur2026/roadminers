@@ -6,10 +6,6 @@ const MAX_RESULTS = 60;
 
 let DB = { entries: [], notes: [] };
 let currentItem = null;
-let currentPhoto = null; // dataURL (vue détail)
-let lot = [];            // [{photo: dataURL, entry: null|obj}]
-let pickerTarget = -1;   // index du lot en cours d'identification
-let stream = null;       // flux caméra
 
 /* ---------- Utilitaires ---------- */
 const $ = (sel) => document.querySelector(sel);
@@ -57,11 +53,6 @@ function entryTitle(e) {
 
 function entryRef(e) {
   return [e.section, e.category, e.series].filter(Boolean).join(" › ");
-}
-
-function guidePageUrl(e) {
-  const p = String(e.page).padStart(3, "0");
-  return e.source === "catalogue" ? `pages2/p2-${p}.png` : `pages/page-${p}.png`;
 }
 
 /* ---------- Correspondance Numista (images pile/face) ---------- */
@@ -184,7 +175,8 @@ function resultItem(e, onPick) {
 function renderResults(list, query) {
   const ul = $("#results");
   const count = $("#results-count");
-  $("#quick-hints").style.display = query ? "none" : "block";
+  // page d'accueil (cours + fonte + exemples) visible seulement sans recherche
+  $("#home-zone").style.display = query ? "none" : "";
   ul.innerHTML = "";
   if (!query) { count.textContent = ""; return; }
   if (list.length === 0) {
@@ -198,46 +190,64 @@ function renderResults(list, query) {
     : `${list.length} résultat${list.length > 1 ? "s" : ""}`;
 }
 
-/* ---------- Fiche caractéristiques Numista ---------- */
-function renderCaracs(nm) {
+/* ---------- Fiche caractéristiques (Numista ou Monnaie royale) ---------- */
+function renderCaracs(nm, mint) {
   const zone = $("#caracs-zone");
   const box = $("#caracs");
+  const title = $("#caracs-title");
   const d = nm && NUMISTA_DETAILS[String(nm.id)];
-  if (!d) { zone.hidden = true; return; }
-  const rows = [
-    ["Émetteur", d.issuer],
-    ["Type", d.type],
-    ["Période", d.years],
-    d.rulers && d.rulers.length ? ["Dirigeant", d.rulers.join(", ")] : null,
-    ["Valeur", d.value],
-    ["Devise", d.currency],
-    ["Composition", d.composition],
-    ["Poids", d.weight != null ? d.weight + " g" : null],
-    ["Diamètre", d.size != null ? d.size + " mm" : null],
-    ["Épaisseur", d.thickness != null ? d.thickness + " mm" : null],
-    ["Forme", d.shape],
-    ["Technique", d.technique],
-    ["Orientation", d.orientation],
-    ["Tranche", d.edge],
-    ["Démonétisée", d.demonetized === true ? "Oui" : d.demonetized === false ? "Non" : null],
-    d.mints && d.mints.length ? ["Atelier", d.mints.join(", ")] : null,
-    d.references && d.references.length ? ["Références", d.references.join(" · ")] : null,
-  ].filter(Boolean);
-  let html = rows.map(([k, v]) =>
-    `<div class="carac-row"><span class="carac-k">${k}</span><span class="carac-v">${escapeHtml(String(v))}</span></div>`
-  ).join("");
-  for (const [label, side] of [["Avers", d.obverse], ["Revers", d.reverse]]) {
-    if (side && (side.description || side.lettering)) {
-      html += `<div class="carac-side"><div class="carac-side-title">${label}</div>`;
-      if (side.description) html += `<p>${escapeHtml(side.description)}</p>`;
-      if (side.lettering) html += `<p class="carac-lettering">${escapeHtml(side.lettering)}</p>`;
-      if (side.engravers && side.engravers.length)
-        html += `<p class="carac-eng">Graveur : ${escapeHtml(side.engravers.join(", "))}</p>`;
-      html += `</div>`;
+  if (d) {
+    title.textContent = "Caractéristiques (Numista)";
+    const rows = [
+      ["Émetteur", d.issuer],
+      ["Type", d.type],
+      ["Période", d.years],
+      d.rulers && d.rulers.length ? ["Dirigeant", d.rulers.join(", ")] : null,
+      ["Valeur", d.value],
+      ["Devise", d.currency],
+      ["Composition", d.composition],
+      ["Poids", d.weight != null ? d.weight + " g" : null],
+      ["Diamètre", d.size != null ? d.size + " mm" : null],
+      ["Épaisseur", d.thickness != null ? d.thickness + " mm" : null],
+      ["Forme", d.shape],
+      ["Technique", d.technique],
+      ["Orientation", d.orientation],
+      ["Tranche", d.edge],
+      ["Démonétisée", d.demonetized === true ? "Oui" : d.demonetized === false ? "Non" : null],
+      d.mints && d.mints.length ? ["Atelier", d.mints.join(", ")] : null,
+      d.references && d.references.length ? ["Références", d.references.join(" · ")] : null,
+    ].filter(Boolean);
+    let html = rows.map(([k, v]) =>
+      `<div class="carac-row"><span class="carac-k">${k}</span><span class="carac-v">${escapeHtml(String(v))}</span></div>`
+    ).join("");
+    for (const [label, side] of [["Avers", d.obverse], ["Revers", d.reverse]]) {
+      if (side && (side.description || side.lettering)) {
+        html += `<div class="carac-side"><div class="carac-side-title">${label}</div>`;
+        if (side.description) html += `<p>${escapeHtml(side.description)}</p>`;
+        if (side.lettering) html += `<p class="carac-lettering">${escapeHtml(side.lettering)}</p>`;
+        if (side.engravers && side.engravers.length)
+          html += `<p class="carac-eng">Graveur : ${escapeHtml(side.engravers.join(", "))}</p>`;
+        html += `</div>`;
+      }
     }
+    box.innerHTML = html;
+    zone.hidden = false;
+    return;
   }
-  box.innerHTML = html;
-  zone.hidden = false;
+  // secours : specs de la fiche officielle mint.ca (format "Clé: valeur; ...")
+  if (mint && mint.specs) {
+    title.textContent = "Caractéristiques (Monnaie royale canadienne)";
+    const pairs = mint.specs.split(";").map((s) => s.trim()).filter(Boolean);
+    const html = pairs.map((p) => {
+      const i = p.indexOf(":");
+      if (i < 0) return `<div class="carac-row"><span class="carac-v">${escapeHtml(p)}</span></div>`;
+      return `<div class="carac-row"><span class="carac-k">${escapeHtml(p.slice(0, i).trim())}</span><span class="carac-v">${escapeHtml(p.slice(i + 1).trim())}</span></div>`;
+    }).join("");
+    box.innerHTML = html;
+    zone.hidden = false;
+    return;
+  }
+  zone.hidden = true;
 }
 
 /* ---------- Images Google en secours (via proxy serveur sécurisé) ---------- */
@@ -308,14 +318,12 @@ function initCoinDrag() {
 /* ---------- Détail ---------- */
 function openDetail(e) {
   currentItem = e;
-  currentPhoto = null;
-  $("#photo-preview").hidden = true;
-  $("#photo-input").value = "";
   $("#realprice").value = "";
   $("#margin-info").textContent = "";
 
   const isCatalog = e.source === "catalogue";
   const nm = NUMISTA[entryKey(e)];
+  const mint = MINT[entryKey(e)];
   const verdict = $("#verdict");
   verdict.textContent = isCatalog ? "VALEUR CATALOGUE" : "ON PREND";
   verdict.classList.remove("no");
@@ -325,8 +333,6 @@ function openDetail(e) {
   $("#detail-ref").textContent = entryRef(e) + (e.page ? `  •  ${isCatalog ? "Catalogue" : "Guide"} p. ${e.page}` : "");
   $("#detail-price").textContent = e.price != null ? fmt(e.price) : "—";
   // référence externe : Numista, sinon mint.ca, sinon rien (bouton caché)
-  const mint = MINT[entryKey(e)];
-  const img = nm && nm.obv ? nm : (mint && mint.obv ? mint : null);
   const link = $("#guide-page-link");
   if (nm && nm.id) {
     link.hidden = false;
@@ -339,7 +345,7 @@ function openDetail(e) {
   } else {
     link.hidden = true;
   }
-  renderCaracs(nm);
+  renderCaracs(nm, mint);
 
   // prix réel : mint.ca si la pièce y est, sinon recherche Google
   const pcLink = $("#pricecharting-link");
@@ -362,17 +368,19 @@ function openDetail(e) {
     tiers.appendChild(div);
   }
 
-  // pièce 3D : vraies images Numista / mint.ca, sinon Google, sinon faces dorées
+  // pièce 3D : vraies images Numista / mint.ca (même une seule face), sinon Google, sinon faces dorées
   const title = entryTitle(e);
   const front = $("#coin-front"), back = $("#coin-back");
-  const applyImg = (obv, rev) => {
-    front.classList.toggle("has-img", !!obv);
-    back.classList.toggle("has-img", !!rev);
-    front.style.backgroundImage = obv ? `url("${obv}")` : "";
-    back.style.backgroundImage = rev ? `url("${rev}")` : "";
+  const obv = (nm && nm.obv) || (mint && mint.obv) || null;
+  const rev = (nm && nm.rev) || (mint && mint.rev) || null;
+  const applyImg = (o, r) => {
+    front.classList.toggle("has-img", !!o);
+    back.classList.toggle("has-img", !!r);
+    front.style.backgroundImage = o ? `url("${o}")` : "";
+    back.style.backgroundImage = r ? `url("${r}")` : "";
   };
-  if (img && img.obv && img.rev) {
-    applyImg(img.obv, img.rev);
+  if (obv || rev) {
+    applyImg(obv || rev, rev || obv);
     front.innerHTML = `<div class="cf-badge">${escapeHtml(title.length > 36 ? title.slice(0, 36) + "…" : title)}</div>`;
     back.innerHTML = `<div class="cf-badge">${e.price != null ? fmt(e.price) : ""}</div>`;
   } else {
@@ -410,151 +418,6 @@ function updateMargin() {
   const pct = currentItem.price > 0 ? (diff / currentItem.price) * 100 : 0;
   const sign = diff >= 0 ? "+" : "";
   info.innerHTML = `Marge potentielle : <strong>${sign}${fmt(diff)}</strong> (${sign}${pct.toFixed(1)} % par rapport au prix du guide)`;
-}
-
-/* ---------- Photo (vue détail) ---------- */
-function shrinkImage(img, max, quality) {
-  const scale = Math.min(1, max / Math.max(img.width, img.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(img.width * scale);
-  canvas.height = Math.round(img.height * scale);
-  canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", quality);
-}
-
-function handlePhoto(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      currentPhoto = shrinkImage(img, 900, 0.7);
-      const prev = $("#photo-preview");
-      prev.src = currentPhoto;
-      prev.hidden = false;
-    };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-/* ---------- Caméra / Scanner ---------- */
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false
-    });
-    $("#cam").srcObject = stream;
-    $("#cam-off").style.display = "none";
-  } catch (err) {
-    console.warn("caméra", err);
-    $("#cam-off").style.display = "grid";
-    toast("Caméra inaccessible — vérifiez les permissions du navigateur");
-  }
-}
-
-function stopCamera() {
-  if (stream) {
-    stream.getTracks().forEach((t) => t.stop());
-    stream = null;
-  }
-}
-
-function capturePhoto() {
-  const video = $("#cam");
-  if (!stream || !video.videoWidth) { toast("Activez la caméra d'abord"); return; }
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
-  const img = new Image();
-  img.onload = () => {
-    lot.push({ photo: shrinkImage(img, 900, 0.7), entry: null });
-    renderLot();
-    toast("Photo ajoutée au lot");
-  };
-  img.src = canvas.toDataURL("image/jpeg", 0.9);
-}
-
-/* ---------- Lot ---------- */
-function renderLot() {
-  const zone = $("#lot-list");
-  $("#lot-count").textContent = lot.length;
-  $("#lot-hint").style.display = lot.length ? "none" : "block";
-  zone.innerHTML = "";
-
-  lot.forEach((item, i) => {
-    const card = document.createElement("div");
-    card.className = "lot-item" + (item.entry ? " matched" : "");
-    const e = item.entry;
-    card.innerHTML = `
-      <img src="${item.photo}" class="lot-thumb" alt="photo ${i + 1}">
-      <div class="lot-info">
-        ${e
-          ? `<div class="lot-title">${escapeHtml(entryTitle(e))}</div>
-             <div class="lot-sub">${escapeHtml(entryRef(e))}</div>
-             <div class="lot-price">${e.price != null ? fmt(e.price) : "—"}</div>`
-          : `<div class="lot-title unidentified">Non identifié — toucher pour identifier</div>`}
-      </div>
-      <button class="lot-del" data-i="${i}" aria-label="Retirer">&times;</button>`;
-    card.addEventListener("click", (ev) => {
-      if (ev.target.classList.contains("lot-del")) {
-        lot.splice(i, 1);
-        renderLot();
-        return;
-      }
-      openPicker(i);
-    });
-    zone.appendChild(card);
-  });
-
-  const matched = lot.filter((it) => it.entry && it.entry.price != null);
-  const totalsZone = $("#lot-totals-zone");
-  if (matched.length) {
-    totalsZone.hidden = false;
-    const total = matched.reduce((s, it) => s + it.entry.price, 0);
-    const tiers = $("#lot-tiers");
-    tiers.innerHTML = "";
-    for (const p of PERCENTS) {
-      const div = document.createElement("div");
-      div.className = "tier" + (p === 100 ? " full" : "");
-      div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total * p / 100)}</span>`;
-      tiers.appendChild(div);
-    }
-  } else {
-    totalsZone.hidden = true;
-  }
-}
-
-/* ---------- Modal d'identification ---------- */
-function openPicker(i) {
-  pickerTarget = i;
-  $("#picker-photo").src = lot[i].photo;
-  $("#picker-input").value = "";
-  $("#picker-results").innerHTML = "";
-  $("#picker").hidden = false;
-  setTimeout(() => $("#picker-input").focus(), 50);
-}
-
-function closePicker() {
-  $("#picker").hidden = true;
-  pickerTarget = -1;
-}
-
-function pickerSearch(q) {
-  const ul = $("#picker-results");
-  ul.innerHTML = "";
-  if (!q.trim()) return;
-  for (const e of search(q)) {
-    ul.appendChild(resultItem(e, (entry) => {
-      if (pickerTarget >= 0) {
-        lot[pickerTarget].entry = entry;
-        renderLot();
-      }
-      closePicker();
-    }));
-  }
 }
 
 /* ---------- Cours en direct + calculateur de fonte ---------- */
@@ -717,7 +580,7 @@ function renderMeltRows() {
       <input class="melt-g" data-i="${i}" type="number" min="0" step="0.01" placeholder="grammes" value="${row.grams}" aria-label="Grammes">
       <select class="melt-pct" data-i="${i}" aria-label="Pourcentage">${pctOptions(row.pct ?? 100)}</select>
       <span class="melt-val" id="melt-val-${i}">—</span>
-      ${meltRows.length > 1 ? `<button class="lot-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}
+      ${meltRows.length > 1 ? `<button class="row-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}
       <div class="melt-pcts" id="melt-pcts-${i}"></div>`;
     zone.appendChild(div);
   });
@@ -1050,7 +913,7 @@ function pushHistory(record) {
     delete record.photo;
     try {
       localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 50)));
-      toast("Enregistré (sans photo, mémoire pleine)");
+      toast("Enregistré (mémoire pleine)");
       return true;
     } catch { toast("Erreur : mémoire pleine"); return false; }
   }
@@ -1065,23 +928,7 @@ function saveEvaluation() {
     ref: entryRef(currentItem),
     guidePrice: currentItem.price,
     realPrice: parseFloat($("#realprice").value) || null,
-    photo: currentPhoto,
   })) toast("Évaluation enregistrée");
-}
-
-function saveLot() {
-  if (!lot.length) return;
-  const matched = lot.filter((it) => it.entry);
-  const total = matched.reduce((s, it) => s + (it.entry.price || 0), 0);
-  if (pushHistory({
-    type: "lot",
-    when: new Date().toISOString(),
-    title: `Lot de ${lot.length} article(s)`,
-    ref: matched.map((it) => entryTitle(it.entry)).join(" • "),
-    guidePrice: total,
-    realPrice: null,
-    photo: lot[0].photo,
-  })) toast("Lot enregistré");
 }
 
 function renderHistory() {
@@ -1110,7 +957,6 @@ function showView(id) {
   document.querySelectorAll(".nav-btn").forEach((b) =>
     b.classList.toggle("active", b.dataset.view === id));
   if (id === "view-history") renderHistory();
-  if (id === "view-scan" && !stream) startCamera();
 }
 
 /* ---------- Événements ---------- */
@@ -1133,18 +979,9 @@ function bindEvents() {
     }));
 
   $("#btn-back").addEventListener("click", () => showView("view-search"));
-  $("#btn-photo").addEventListener("click", () => $("#photo-input").click());
-  $("#photo-input").addEventListener("change", (ev) => handlePhoto(ev.target.files[0]));
   $("#realprice").addEventListener("input", updateMargin);
   $("#btn-save").addEventListener("click", saveEvaluation);
 
-  // scanner
-  $("#btn-cam-on").addEventListener("click", startCamera);
-  $("#btn-capture").addEventListener("click", capturePhoto);
-  $("#btn-save-lot").addEventListener("click", saveLot);
-  $("#btn-clear-lot").addEventListener("click", () => {
-    if (confirm("Vider le lot en cours ?")) { lot = []; renderLot(); }
-  });
   $("#btn-add-material").addEventListener("click", () => {
     meltRows.push({ mat: defaultMatIndex(), grams: "", pct: 100 });
     renderMeltRows();
@@ -1157,15 +994,6 @@ function bindEvents() {
   customInp.addEventListener("input", () => {
     localStorage.setItem("roadminer_custompct", customInp.value);
     updateCustomPct(customPctBase);
-  });
-
-  // modal identification
-  $("#picker-close").addEventListener("click", closePicker);
-  $("#picker-skip").addEventListener("click", closePicker);
-  let pickerDebounce;
-  $("#picker-input").addEventListener("input", (ev) => {
-    clearTimeout(pickerDebounce);
-    pickerDebounce = setTimeout(() => pickerSearch(ev.target.value), 120);
   });
 
   document.querySelectorAll(".nav-btn").forEach((b) =>
@@ -1239,5 +1067,4 @@ function initInstall() {
   initTheme();                   // thème clair / sombre
   initCoinDrag();                // pièce 3D manipulable
   registerSW();
-  startCamera(); // la caméra s'active dès l'ouverture
 })();
