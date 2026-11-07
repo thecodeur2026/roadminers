@@ -17,8 +17,8 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Calculateur de fonte : matériau + grammes → prix d'achat max (Kitco) + paliers
   (sur la page d'accueil, sous les cours en direct)
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
-- Tableau de référence des titrages d'or (8K→24K : poinçon, % d'or, usage)
-  sur la page d'accueil, sous le calculateur de fonte
+- Tableaux de référence des titrages en dépliants sur l'accueil : or (8K→24K)
+  et argent/platine/palladium (poinçons, millièmes, %, notes)
 - Montant payé → pourcentage réel : par ligne de fonte et sur le total
   (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
 - Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale

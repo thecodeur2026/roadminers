@@ -792,6 +792,22 @@ body {
 [data-theme="light"] .guide-block { border-color: #e0d8c4; }
 [data-theme="light"] .guide-body td { border-bottom-color: #ece5d2; }
 
+/* ----- Dépliants de l'accueil (titrages) ----- */
+.home-fold { margin-top: 24px; }
+.home-fold .karat-card {
+  border: none;
+  background: none;
+  padding: 0 6px 6px;
+}
+.fold-sub td {
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding-top: 14px !important;
+  border-bottom: 1px solid var(--gold-dark) !important;
+}
+
 /* ----- Toast ----- */
 .toast {
   position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
