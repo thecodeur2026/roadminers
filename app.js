@@ -439,6 +439,7 @@ async function loadSpot() {
         SPOT = cached;
         renderSpotTicker();
         initMeltV2();
+        initAgc();
         drawSpotChart();
       }
     } catch {}
@@ -473,6 +474,7 @@ async function loadSpot() {
   if (data) SPOT = data;
   renderSpotTicker();
   initMeltV2();
+  initAgc();
   drawSpotChart();
 }
 
@@ -543,6 +545,112 @@ function drawSpark(cv) {
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.fill();
+}
+
+/* --- Calculateur argent : lots de pièces (quantité × prix Kitco au gramme) --- */
+const AGC_TYPES = [
+  { label: "10 ¢ canadien (1966 et avant)", fineness: "80 %", g: 2.33, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
+  { label: "25 ¢ canadien (1966 et avant)", fineness: "80 %", g: 5.83, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
+  { label: "50 ¢ canadien (1966 et avant)", fineness: "80 %", g: 11.66, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
+  { label: "1 $ canadien argent (1967 et avant)", fineness: "80 %", g: 23.33, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
+  { label: "Dollar commémoratif 1971–1991", fineness: "50 %", g: 23.33, fine: 0.5, mat: "0.5000 Canadian Silver Coin (1968)" },
+  { label: "Dollar commémoratif 1992–2002", fineness: "92,5 %", g: 25.175, fine: 0.925, mat: "Sterling Metallic" },
+  { label: "Olympique 5 $ Montréal", fineness: "92,5 %", g: 24.3, fine: 0.925, mat: "Sterling Metallic" },
+  { label: "Olympique 10 $ Montréal", fineness: "92,5 %", g: 48.6, fine: 0.925, mat: "Sterling Metallic" },
+  { label: "10 ¢ américain (1964 et avant)", fineness: "90 %", g: 2.5, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
+  { label: "25 ¢ américain (1964 et avant)", fineness: "90 %", g: 6.25, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
+  { label: "50 ¢ américain (1964 et avant)", fineness: "90 %", g: 12.5, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
+  { label: "1 $ américain Morgan / Peace", fineness: "90 %", g: 26.73, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
+  { label: "50 ¢ Kennedy 1965–1969", fineness: "40 %", g: 11.5, fine: 0.4, mat: "0.4000 US Silver Coin \"Kennedy Half Dollar\" (1965-1970)" },
+];
+let agcQty = {}; // index → quantité
+
+function agcPricePerG(t) {
+  if (SPOT && SPOT.materials) {
+    const m = SPOT.materials.find((x) => x.name === t.mat);
+    if (m) return m.tiers[0].individual;
+    const pure = SPOT.materials.find((x) => /pure silver/i.test(x.name));
+    if (pure) return pure.tiers[0].individual * t.fine;
+  }
+  const cadG = SPOT && SPOT.spot && SPOT.spot.XAG && SPOT.spot.XAG.cad_g;
+  return cadG ? cadG * t.fine : 0;
+}
+
+function renderAgcRows() {
+  const zone = $("#agc-rows");
+  zone.innerHTML = "";
+  AGC_TYPES.forEach((t, i) => {
+    const div = document.createElement("div");
+    div.className = "agc-row";
+    div.innerHTML = `
+      <span class="agc-label">${t.label}<small>${t.fineness} · ${t.g} g</small></span>
+      <input class="agc-qty" data-i="${i}" type="number" min="0" step="1" placeholder="0" value="${agcQty[i] ?? ""}" aria-label="Quantité">
+      <span class="agc-sub" id="agc-sub-${i}">—</span>`;
+    zone.appendChild(div);
+  });
+  zone.querySelectorAll(".agc-qty").forEach((s) =>
+    s.addEventListener("input", (e) => {
+      agcQty[+e.target.dataset.i] = e.target.value;
+      try { localStorage.setItem("roadminer_agc", JSON.stringify(agcQty)); } catch {}
+      updateAgc();
+    }));
+  const paidInp = $("#agc-paid");
+  try { paidInp.value = localStorage.getItem("roadminer_agcpaid") || ""; } catch {}
+  paidInp.addEventListener("input", () => {
+    try { localStorage.setItem("roadminer_agcpaid", paidInp.value); } catch {}
+    updateAgc();
+  });
+}
+
+function updateAgc() {
+  let total = 0;
+  AGC_TYPES.forEach((t, i) => {
+    const qty = parseFloat(agcQty[i]) || 0;
+    const val = qty * t.g * agcPricePerG(t);
+    const sub = $("#agc-sub-" + i);
+    if (sub) sub.textContent = val > 0 ? fmt(val) : "—";
+    total += val;
+  });
+  const res = $("#agc-result");
+  if (!res) return;
+  res.innerHTML = total > 0
+    ? `<span class="melt-total-label">VALEUR DU LOT À 100 % KITCO</span> <strong class="melt-total">${fmt(total)}</strong>`
+    : `Entrez la quantité de chaque type de pièce.`;
+  const tiers = $("#agc-tiers");
+  if (tiers) {
+    tiers.innerHTML = "";
+    if (total > 0) {
+      for (const p of PERCENTS) {
+        const div = document.createElement("div");
+        div.className = "tier" + (p === 100 ? " full" : "");
+        div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total * p / 100)}</span>`;
+        tiers.appendChild(div);
+      }
+    }
+  }
+  const paidRow = $("#agc-paid-row");
+  if (paidRow) paidRow.hidden = total <= 0;
+  const paidInp = $("#agc-paid");
+  const paidOut = $("#agc-paid-pct");
+  if (paidInp && paidOut) {
+    const v = parseFloat(paidInp.value);
+    paidOut.textContent = (!isNaN(v) && v > 0 && total > 0)
+      ? `= ${(v / total * 100).toFixed(1)} %`
+      : "—";
+  }
+}
+
+function initAgc() {
+  if (!SPOT || !$("#agc-rows")) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem("roadminer_agc"));
+    if (saved && typeof saved === "object" && !initAgc._restored) {
+      agcQty = saved;
+      initAgc._restored = true;
+    }
+  } catch {}
+  if (!$("#agc-rows").children.length) renderAgcRows();
+  updateAgc();
 }
 
 /* --- Calculateur multi-matériaux --- */

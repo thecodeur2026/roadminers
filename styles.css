@@ -669,6 +669,42 @@ body {
 .face-card .custom-pct-row input { flex: 1; max-width: 200px; width: auto; }
 [data-theme="light"] .face-card { border-color: #e0d8c4; }
 
+/* ----- Calculateur argent (lots de pièces) ----- */
+.agc-card {
+  background: var(--bg-card);
+  border: 1px solid #262626;
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.agc-head, .agc-row {
+  display: grid;
+  grid-template-columns: 1fr 62px 90px;
+  gap: 8px;
+  align-items: center;
+}
+.agc-head {
+  padding: 0 2px 6px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1px;
+  color: var(--gold);
+}
+.agc-head span:last-child { text-align: right; }
+.agc-row { padding: 5px 0; border-bottom: 1px solid #222; }
+.agc-row:last-of-type { border-bottom: none; }
+.agc-label { font-size: 12.5px; line-height: 1.3; }
+.agc-label small { display: block; color: var(--text-dim); font-size: 10px; }
+.agc-qty {
+  width: 100%; padding: 8px 4px; font-size: 14px; text-align: center;
+  color: var(--text); background: var(--bg-raised);
+  border: 1px solid #333; border-radius: 8px; outline: none;
+}
+.agc-qty:focus { border-color: var(--gold); }
+.agc-sub { color: var(--gold); font-weight: 800; font-size: 13px; text-align: right; }
+.agc-card .custom-pct-row { margin-top: 10px; }
+.agc-card .custom-pct-row input { flex: 1; max-width: 180px; width: auto; }
+[data-theme="light"] .agc-card { border-color: #e0d8c4; }
+[data-theme="light"] .agc-row { border-bottom-color: #ece5d2; }
+[data-theme="light"] .agc-qty { background: #fff; border-color: #ddd3ba; color: #1a1a1a; }
+
 /* ----- Montant payé (fonte) ----- */
 .melt-paid-row {
   grid-column: 1 / -1;

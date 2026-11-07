@@ -23,6 +23,9 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
 - Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale
   des pièces d'argent canadiennes (page d'accueil)
+- Calculateur argent « lots de pièces » : quantité par type (50 ¢ CAN/US,
+  dollars commémoratifs, olympiques, Kennedy 40 %...) → valeur 100 % Kitco,
+  8 paliers et % réel du montant payé (app.js AGC_TYPES)
 - Onglet « Guide » : manuel de formation (or/argent/platine, argenterie,
   monnaie canadienne et américaine, montres, billets, cartes, sécurité,
   fiche d'évaluation) en sections dépliables — contenu statique dans index.html
