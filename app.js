@@ -581,7 +581,12 @@ function renderMeltRows() {
       <select class="melt-pct" data-i="${i}" aria-label="Pourcentage">${pctOptions(row.pct ?? 100)}</select>
       <span class="melt-val" id="melt-val-${i}">—</span>
       ${meltRows.length > 1 ? `<button class="row-del melt-del" data-i="${i}" aria-label="Retirer">&times;</button>` : `<span></span>`}
-      <div class="melt-pcts" id="melt-pcts-${i}"></div>`;
+      <div class="melt-pcts" id="melt-pcts-${i}"></div>
+      <div class="melt-paid-row">
+        <label for="melt-paid-${i}">Payé</label>
+        <input class="melt-paid" id="melt-paid-${i}" data-i="${i}" type="number" min="0" step="0.01" placeholder="montant $" value="${row.paid ?? ""}" aria-label="Montant payé">
+        <span class="melt-paid-pct" id="melt-paid-pct-${i}"></span>
+      </div>`;
     zone.appendChild(div);
   });
   zone.querySelectorAll(".melt-mat").forEach((s) =>
@@ -599,6 +604,12 @@ function renderMeltRows() {
   zone.querySelectorAll(".melt-g").forEach((s) =>
     s.addEventListener("input", (e) => {
       meltRows[+e.target.dataset.i].grams = e.target.value;
+      saveMeltRows();
+      updateMeltV2();
+    }));
+  zone.querySelectorAll(".melt-paid").forEach((s) =>
+    s.addEventListener("input", (e) => {
+      meltRows[+e.target.dataset.i].paid = e.target.value;
       saveMeltRows();
       updateMeltV2();
     }));
@@ -660,6 +671,14 @@ function updateMeltV2() {
       anyVal = true;
       details.push(`${fmt(per)}/g × ${g} g × ${pct} %`);
     }
+    // montant payé → pourcentage réel par rapport au 100 % Kitco de la ligne
+    const paidOut = $("#melt-paid-pct-" + i);
+    if (paidOut) {
+      const paid = parseFloat(row.paid);
+      paidOut.textContent = (!isNaN(paid) && paid > 0 && val100 > 0)
+        ? `≈ ${(paid / val100 * 100).toFixed(1)} %`
+        : "";
+    }
     total += val;
     total100 += val100;
   });
@@ -701,6 +720,15 @@ function updateCustomPct(base) {
   if (!inp || !out) return;
   const p = parseFloat(inp.value);
   out.textContent = (!isNaN(p) && base > 0) ? fmt(base * p / 100) : "—";
+  // montant payé au total → pourcentage réel du 100 % Kitco
+  const paidInp = $("#custom-paid");
+  const paidOut = $("#custom-paid-pct");
+  if (paidInp && paidOut) {
+    const v = parseFloat(paidInp.value);
+    paidOut.textContent = (!isNaN(v) && v > 0 && base > 0)
+      ? `= ${(v / base * 100).toFixed(1)} %`
+      : "—";
+  }
 }
 
 /* ---------- Effet « pluie de grains d'or » (3D) ---------- */
@@ -994,6 +1022,21 @@ function bindEvents() {
   customInp.addEventListener("input", () => {
     localStorage.setItem("roadminer_custompct", customInp.value);
     updateCustomPct(customPctBase);
+  });
+  const customPaid = $("#custom-paid");
+  try { customPaid.value = localStorage.getItem("roadminer_custompaid") || ""; } catch {}
+  customPaid.addEventListener("input", () => {
+    try { localStorage.setItem("roadminer_custompaid", customPaid.value); } catch {}
+    updateCustomPct(customPctBase);
+  });
+
+  // valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale ($)
+  const faceInp = $("#face-grams");
+  faceInp.addEventListener("input", () => {
+    const g = parseFloat(faceInp.value);
+    $("#face-result").textContent = (!isNaN(g) && g > 0)
+      ? (g / 23.32).toLocaleString("fr-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $ facial"
+      : "—";
   });
 
   document.querySelectorAll(".nav-btn").forEach((b) =>

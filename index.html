@@ -74,9 +74,25 @@
             <span class="custom-pct-sign">%</span>
             <strong id="custom-pct-val">—</strong>
           </div>
+          <label for="custom-paid" style="margin-top:10px">Montant payé au total ($) — pourcentage réel :</label>
+          <div class="custom-pct-row">
+            <input type="number" id="custom-paid" min="0" step="0.01" placeholder="ex. 850">
+            <span class="custom-pct-sign">$</span>
+            <strong id="custom-paid-pct">—</strong>
+          </div>
         </div>
         <div class="tiers" id="melt-tiers"></div>
         <p class="hint-note" id="melt-source">100 % = prix <strong>Non-Wholesale</strong> par gramme de la page <a href="https://online.kitco.com/refining/gold-silver-CAD.html" target="_blank" rel="noopener" style="color:var(--gold)">Kitco refining (CAD)</a>, selon la contenance — cours en direct.</p>
+      </div>
+
+      <h3 class="section-title">Valeur faciale — pièces d'argent canadiennes</h3>
+      <div class="face-card">
+        <p class="hint-note" style="margin-top:0">Poids total de l'ensemble des pièces <strong>÷ 23,32 g</strong> = valeur faciale en dollars.</p>
+        <div class="custom-pct-row">
+          <input type="number" id="face-grams" min="0" step="0.01" placeholder="poids total en grammes">
+          <span class="custom-pct-sign">g</span>
+          <strong id="face-result">—</strong>
+        </div>
       </div>
 
       <h3 class="section-title">Titrage de l'or — carats &amp; poinçons</h3>
@@ -88,7 +104,7 @@
           <tbody>
             <tr>
               <td><strong>24K</strong><span class="karat-parts">24/24 parts</span></td>
-              <td class="karat-mil">999,9 ‰</td>
+              <td class="karat-mil">999 ‰</td>
               <td><div class="karat-bar"><span style="width:99.9%"></span></div><span class="karat-pct">99,9 %</span></td>
               <td class="karat-usage">Lingots, pièces d'investissement (trop mou pour les bijoux)</td>
             </tr>
@@ -97,6 +113,12 @@
               <td class="karat-mil">916 ‰</td>
               <td><div class="karat-bar"><span style="width:91.6%"></span></div><span class="karat-pct">91,6 %</span></td>
               <td class="karat-usage">Bijoux traditionnels de haute valeur (Asie, Moyen-Orient)</td>
+            </tr>
+            <tr>
+              <td><strong>21K</strong><span class="karat-parts">21/24 parts</span></td>
+              <td class="karat-mil">875 ‰</td>
+              <td><div class="karat-bar"><span style="width:87.5%"></span></div><span class="karat-pct">87,5 %</span></td>
+              <td class="karat-usage">—</td>
             </tr>
             <tr>
               <td><strong>19K</strong><span class="karat-parts">19/24 parts</span></td>
@@ -109,6 +131,18 @@
               <td class="karat-mil">750 ‰</td>
               <td><div class="karat-bar"><span style="width:75%"></span></div><span class="karat-pct">75,0 %</span></td>
               <td class="karat-usage">Haute joaillerie, bagues de fiançailles (le standard du luxe)</td>
+            </tr>
+            <tr>
+              <td><strong>16K</strong><span class="karat-parts">16/24 parts</span></td>
+              <td class="karat-mil">666 ‰</td>
+              <td><div class="karat-bar"><span style="width:66.6%"></span></div><span class="karat-pct">66,6 %</span></td>
+              <td class="karat-usage">—</td>
+            </tr>
+            <tr>
+              <td><strong>15K</strong><span class="karat-parts">15/24 parts</span></td>
+              <td class="karat-mil">625 ‰</td>
+              <td><div class="karat-bar"><span style="width:62.5%"></span></div><span class="karat-pct">62,5 %</span></td>
+              <td class="karat-usage">—</td>
             </tr>
             <tr>
               <td><strong>14K</strong><span class="karat-parts">14/24 parts</span></td>
@@ -191,6 +225,241 @@
     <button class="btn-gold btn-save" id="btn-save">Enregistrer l'évaluation</button>
   </section>
 
+  <!-- ============ VUE GUIDE (manuel de formation) ============ -->
+  <section id="view-guide" class="view">
+    <h3 class="section-title" style="margin-top:0">Manuel de formation — objets de valeur</h3>
+    <p class="hint-note" style="margin-top:0">Les valeurs historiques citées ne sont ni des prix garantis ni des offres d'achat. Les listes de marques et les tests indicatifs ne remplacent pas une analyse.</p>
+
+    <details class="guide-block" open>
+      <summary>Mode d'emploi et sécurité</summary>
+      <div class="guide-body">
+        <ul>
+          <li>Identifier l'objet, photographier les poinçons et relever son <strong>poids brut</strong>.</li>
+          <li>Vérifier la composition : poinçon, dimensions, masse, provenance et, si nécessaire, <strong>analyse XRF</strong> ou laboratoire.</li>
+          <li><strong>Ne pas</strong> utiliser de tests destructifs sur une pièce de collection ou une montre potentiellement rare.</li>
+          <li>Tests acides : formation, lunettes, gants compatibles, ventilation et protocole de sécurité ; <strong>ne pas mélanger les réactifs</strong>.</li>
+          <li>Contrôler les obligations locales : identification du vendeur, registre d'achat, biens volés, taxes et protection du consommateur.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Or : carats, poinçons et calcul de fonte</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Carats</th><th>Poinçon</th><th>Or fin théorique</th></tr></thead>
+          <tbody>
+            <tr><td>24K</td><td>999</td><td>99,9 %</td></tr>
+            <tr><td>22K</td><td>916</td><td>91,6 %</td></tr>
+            <tr><td>21K</td><td>875</td><td>87,5 %</td></tr>
+            <tr><td>18K</td><td>750</td><td>75,0 %</td></tr>
+            <tr><td>16K</td><td>666</td><td>66,6 %</td></tr>
+            <tr><td>15K</td><td>625</td><td>62,5 %</td></tr>
+            <tr><td>14K</td><td>585</td><td>58,5 %</td></tr>
+            <tr><td>12K</td><td>500</td><td>50,0 %</td></tr>
+            <tr><td>10K</td><td>417</td><td>41,7 %</td></tr>
+            <tr><td>9K</td><td>375</td><td>37,5 %</td></tr>
+            <tr><td>8K</td><td>333</td><td>33,3 %</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Marquages :</strong> K, KT, CT, C peuvent désigner le carat selon le contexte. <strong>GF</strong> = Gold Filled ; <strong>1/10</strong> et <strong>1/20</strong> = fraction de la masse en or du revêtement ; <strong>RGP</strong> = Rolled Gold Plate. Ces articles sont <strong>non souhaités</strong> pour le rachat d'or massif.</p>
+        <div class="guide-warn">
+          <strong>Calcul de valeur de fonte :</strong><br>
+          Or fin (g) = poids net (g) × titre.<br>
+          Valeur brute = or fin (g) × cours de l'or pur par gramme.<br>
+          Exemple fictif : 20 g d'or 18K → 15 g d'or fin ; à 100 $/g (hypothétique) → 1 500 $ de valeur métal brute. Déduire coûts, pertes et marge selon un barème transparent.
+        </div>
+        <p>Note du support : « Nous recevons 98,5 % or – 95 % argent » — rendement ou taux de paiement non défini : <strong>ne pas l'appliquer automatiquement</strong>.</p>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Argent, platine et palladium</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Métal / poinçon</th><th>Interprétation</th></tr></thead>
+          <tbody>
+            <tr><td>Argent 750 / 800 / 850 / 900</td><td>75 / 80 / 85 / 90 % d'argent</td></tr>
+            <tr><td>925 (Sterling)</td><td>92,5 % d'argent</td></tr>
+            <tr><td>999 / 9999</td><td>99,9 / 99,99 % d'argent</td></tr>
+            <tr><td>PLAT / 900</td><td>Marquages possibles de platine ; vérifier le contexte</td></tr>
+            <tr><td>PALL</td><td>Marquage possible de palladium ; analyse nécessaire</td></tr>
+          </tbody>
+        </table>
+        <p><strong>1 once troy = 31,1034768 g</strong> (arrondi : 31,1035 g).</p>
+        <p>Les tests à l'acide pour platine et palladium ne sont <strong>pas des preuves d'identité</strong> : certains aciers et alliages donnent des réactions trompeuses.</p>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Argenterie et métal plaqué</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Marquages recherchés</th><th>À vérifier avec prudence</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>800 (lions), 900, 925, Sterling, Silver, Argent</td>
+              <td>EP, EPBS, EPNS, EPCS, Silver Plate, Copper, Nickel, Brass, Pewter, Guaranteed</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>Rogers &amp; Son, Community, Oneida, Christofle, Wallace, International Silver Co.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Réactions décrites (indicatives, pas universelles) :</strong> bleu pâle + dépôt blanc sans bulles = « bon » ; bleu-vert = cuivre ; vert = laiton ; noir + dépôt blanc + bulles = étain. Le nom d'un fabricant ne détermine pas la teneur en argent.</p>
+        <div class="guide-warn">Attention aux <strong>chandeliers et boîtes à bijoux lestés</strong> de plâtre ou de bois ; les manches de couteaux peuvent contenir des matériaux de remplissage. <strong>Calculer uniquement le métal récupérable.</strong></div>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Monnaie canadienne</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Catégorie</th><th>Teneur / notes</th></tr></thead>
+          <tbody>
+            <tr><td>Pièces jusqu'en 1966</td><td>80 % d'argent ; vérifier dénomination et date</td></tr>
+            <tr><td>1967</td><td>50 % ou 80 % selon l'émission (moyenne ~60 %)</td></tr>
+            <tr><td>1968</td><td>50 % ; test à l'aimant — toutes les pièces ne sont pas argentées</td></tr>
+            <tr><td>Olympiques Montréal</td><td>5 $ = 25 g ; 10 $ = 50 g ; série de 28 pièces ≈ 1 000 g ; pureté variable</td></tr>
+            <tr><td>Olympiques Calgary</td><td>20 $ = 1 oz ; vérifier émission et masse exacte</td></tr>
+            <tr><td>Dollars commémoratifs</td><td>1971–1991 : 50 % ; 1992–2002 : 92,5 % ; 2003+ : 99,9 % (à contrôler pièce par pièce)</td></tr>
+            <tr><td>Autres recherchés</td><td>5 cents 1921 / 1925 / 1926 Far ; Large Cent ; petits cents 1922–1927 ; jetons Canada ; ensembles 1999 novembre/septembre</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Monnaies canadiennes en or (indications du support) :</strong></p>
+        <table>
+          <thead><tr><th>Valeur / année</th><th>Quantité annoncée</th></tr></thead>
+          <tbody>
+            <tr><td>20 $ 1967</td><td>1/2 oz</td></tr>
+            <tr><td>100 $ 1976–1986</td><td>1/2 oz</td></tr>
+            <tr><td>100 $ 1987–2003</td><td>1/4 oz</td></tr>
+            <tr><td>100 $ 2004+</td><td>Moins de 1/4 oz</td></tr>
+            <tr><td>100 $ olympique Montréal 1976</td><td>Mentionné, quantité non précisée</td></tr>
+            <tr><td>5 $ 1912 / 10 $ 1912</td><td>Presque 1/4 oz / presque 1/2 oz</td></tr>
+          </tbody>
+        </table>
+        <div class="guide-warn">Ne pas déduire la teneur en or de l'emballage (« carton brun », « boîte en bois »…). Distinguer <strong>masse totale</strong>, <strong>masse d'or fin</strong> et <strong>prime numismatique</strong>.</div>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Monnaie américaine et étrangère</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Catégorie</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>USA 1964 et avant</td><td>90 % d'argent pour certaines dénominations</td></tr>
+            <tr><td>Kennedy 50 cents 1965–1969</td><td>40 % d'argent</td></tr>
+            <tr><td>5 cents 1942–1945 (P, D, S)</td><td>Pièces de guerre : 35 % d'argent</td></tr>
+            <tr><td>Anciennes dénominations</td><td>Half Cent, Large Cent, Two Cents, Three Cents, Half Dime, Five Cents, US Token</td></tr>
+            <tr><td>Or USA 5 $ / 10 $ / 20 $</td><td>≈ 0,240 / 0,48 / 0,96 oz (approximatif)</td></tr>
+            <tr><td>Pièces étrangères en argent</td><td>Titre 800 et plus ; vérifier chaque émission</td></tr>
+            <tr><td>Métaux étrangers non précieux</td><td>Support : 2 à 3 $/lb (prix historique non daté)</td></tr>
+            <tr><td>Billets étrangers</td><td>Support : anciens billets ~10 cents pièce — non représentatif du marché</td></tr>
+          </tbody>
+        </table>
+        <p>Une tranche cuivrée (ligne brune = cœur cuivre) ne permet pas à elle seule de dater ou d'évaluer une pièce.</p>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Montres : tri et authentification</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Luxe (selon le support)</th><th>Autres marques / catégories</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Cartier, Panerai, Omega, Vacheron Constantin, Rolex, Jaeger-LeCoultre, Breitling, Longines, Audemars Piguet, TAG Heuer</td>
+              <td>Timex, Bulova, Caravelle, Walt Disney, Fossil, Rado, Gucci, Lacoste, Michael Kors, Quartz</td>
+            </tr>
+          </tbody>
+        </table>
+        <ul>
+          <li><strong>Mouvement automatique</strong> : remontage par les mouvements du poignet. <strong>Wind-up</strong> : remontage manuel par la couronne.</li>
+          <li>« 21 jewels » = rubis de palier dans le mouvement, <strong>pas une garantie de valeur</strong>.</li>
+          <li>Vérifier séparément boîtier, fond, bracelet, mécanisme, authenticité, références et état.</li>
+          <li><strong>Ne pas fondre une montre</strong> avant de comparer sa valeur de collection.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Billets de banque canadiens</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Époque / type</th><th>Critère du support</th></tr></thead>
+          <tbody>
+            <tr><td>Billet de 25 cents</td><td>2 à 5 $ selon l'état (valeur historique)</td></tr>
+            <tr><td>1935 et avant</td><td>Toujours intéressant</td></tr>
+            <tr><td>1937, signature Osborne</td><td>1 $ et 2 $ : valeur faciale ou photo ; 5–100 $ si bon état</td></tr>
+            <tr><td>1954 Devil Face</td><td>Variété recherchée</td></tr>
+            <tr><td>1967 commémoratif</td><td>Support : « aucun billet commémoratif 1867–1967 »</td></tr>
+            <tr><td>1973 et après</td><td>100 billets consécutifs ou rouleau non coupé</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Numéros de série recherchés :</strong> radar (palindrome), chiffres identiques (ex. 999999999), millionième (ex. 2000000), astérisque initial (ex. *3478956), X en troisième position (ex. AJX032178).</p>
+        <p><strong>Erreurs citées :</strong> mauvaise coupe, mauvaise impression, mauvaise couleur, absence de numéro de série, billets spécimens à numéro zéro. <strong>Faire authentifier</strong> : un dommage après émission n'est pas une erreur de fabrication.</p>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Cartes et souvenirs de collection</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Famille</th><th>Indications</th></tr></thead>
+          <tbody>
+            <tr><td>Hockey avant 1989</td><td>Recrues : Gretzky 1978–80, Orr 1966–67, Lemieux 1985–86, Roy 1986–87</td></tr>
+            <tr><td>Hockey 1985–1989</td><td>Séries OPC complètes ou presque (396 cartes) ; TOPPS variable</td></tr>
+            <tr><td>Équipement</td><td>Maillots, rondelles et bâtons <strong>utilisés en match uniquement</strong></td></tr>
+            <tr><td>Beehive</td><td>Support : 3 $ chacun (historique), sinon photos</td></tr>
+            <tr><td>Jetons Shirriff, Jell-O, Salada</td><td>1961–62 plastique/métal : ~1 $ si bon état ; 1968–69 : envoyer photo</td></tr>
+            <tr><td>Autres souvenirs</td><td>Macarons, billes rouges/bleues, bagues ; calendriers Molson et Export « A »</td></tr>
+            <tr><td>Baseball 1980–1985</td><td>Séries complètes ou presque, 600–700 cartes</td></tr>
+            <tr><td>Boxe et lutte</td><td>Avant 1970, état Mint</td></tr>
+            <tr><td>Non-sport</td><td>Avant 1970 : tabac, gomme, cinéma, avions</td></tr>
+          </tbody>
+        </table>
+        <p>Une année ou un joueur connu ne suffit pas : vérifier <strong>éditeur, série, numéro, authenticité, état, centrage, provenance</strong> et ventes comparables récentes.</p>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Fiche d'évaluation standard</summary>
+      <div class="guide-body">
+        <table>
+          <thead><tr><th>Champ</th><th>À renseigner</th></tr></thead>
+          <tbody>
+            <tr><td>Identification</td><td>Catégorie, marque, modèle, année, référence</td></tr>
+            <tr><td>Documentation</td><td>Photos recto/verso, poinçons, certificats, provenance</td></tr>
+            <tr><td>Mesures</td><td>Poids brut, poids net métal, dimensions</td></tr>
+            <tr><td>Contrôle</td><td>Méthode utilisée, résultat, limites et opérateur</td></tr>
+            <tr><td>Évaluation</td><td>Cours du jour, ventes comparables, valeur brute</td></tr>
+            <tr><td>Offre</td><td>Frais, marge, montant proposé, devise, date</td></tr>
+            <tr><td>Traçabilité</td><td>Identité vendeur et registre conformément au droit applicable</td></tr>
+          </tbody>
+        </table>
+        <div class="guide-warn">
+          <strong>Exemple (chiffres fictifs) :</strong> pièce de 25 g en argent 925 → 25 × 0,925 = 23,125 g d'argent fin ; à 1,20 $/g → 27,75 $ de valeur métal théorique. La valeur numismatique peut être supérieure ou inférieure à la fonte.
+        </div>
+      </div>
+    </details>
+
+    <details class="guide-block">
+      <summary>Vérifications et limites du document source</summary>
+      <div class="guide-body">
+        <ul>
+          <li>Les listes de marques « bonnes » ou « pas bonnes » sont des <strong>raccourcis de tri</strong>, pas des preuves de composition.</li>
+          <li>Les prix en cents/gramme, par couteau ou par carte <strong>ne sont pas datés</strong> : ne pas les utiliser comme prix de marché.</li>
+          <li>Les pourcentages des pièces commémoratives et olympiques doivent être <strong>contrôlés pièce par pièce</strong>.</li>
+          <li>Les méthodes à l'acide, à l'aimant et à la couleur sont <strong>indicatives</strong> ; préférer des analyses non destructives quand l'objet peut avoir une valeur de collection.</li>
+          <li>Les quantités en onces des pièces d'or peuvent désigner une <strong>masse brute</strong> ou une <strong>masse d'or fin</strong> : ne pas les confondre.</li>
+        </ul>
+        <p><strong>Conclusion :</strong> la bonne méthode combine identification, composition vérifiée, poids net, authenticité et état.</p>
+      </div>
+    </details>
+  </section>
+
   <!-- ============ VUE HISTORIQUE ============ -->
   <section id="view-history" class="view">
     <h3 class="section-title">Évaluations enregistrées</h3>
@@ -204,6 +473,9 @@
 <nav class="bottom-nav">
   <button class="nav-btn active" data-view="view-search">
     <span class="nav-icon">&#128269;</span>Recherche
+  </button>
+  <button class="nav-btn" data-view="view-guide">
+    <span class="nav-icon">&#128214;</span>Guide
   </button>
   <button class="nav-btn" data-view="view-history">
     <span class="nav-icon">&#128203;</span>Historique

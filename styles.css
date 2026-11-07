@@ -659,6 +659,103 @@ body {
 [data-theme="light"] .karat-bar { background: #e5dec9; }
 [data-theme="light"] .karat-table td { border-bottom-color: #ece5d2; }
 
+/* ----- Valeur faciale ----- */
+.face-card {
+  background: var(--bg-card);
+  border: 1px solid #262626;
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.face-card .custom-pct-row input { flex: 1; max-width: 200px; width: auto; }
+[data-theme="light"] .face-card { border-color: #e0d8c4; }
+
+/* ----- Montant payé (fonte) ----- */
+.melt-paid-row {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 2px 8px;
+  font-size: 11.5px; color: var(--text-dim);
+}
+.melt-paid-row label { font-weight: 700; }
+.melt-paid-row input {
+  width: 96px; padding: 6px 8px; font-size: 13px;
+  color: var(--gold-light); background: var(--bg-raised);
+  border: 1px solid #333; border-radius: 8px; outline: none;
+}
+.melt-paid-row input:focus { border-color: var(--gold); }
+.melt-paid-pct { color: var(--gold); font-weight: 800; }
+[data-theme="light"] .melt-paid-row input {
+  background: #fff; border-color: #ddd3ba; color: #1a1a1a;
+}
+
+/* ----- Guide (manuel de formation) ----- */
+.guide-block {
+  background: var(--bg-card);
+  border: 1px solid #262626;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.guide-block summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 16px;
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 14px;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.guide-block summary::-webkit-details-marker { display: none; }
+.guide-block summary::after {
+  content: "\25BE";
+  font-size: 12px;
+  transition: transform .2s ease;
+  flex-shrink: 0;
+}
+.guide-block[open] summary::after { transform: rotate(180deg); }
+.guide-body {
+  padding: 0 16px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.guide-body p { margin: 8px 0; }
+.guide-body ul { padding-left: 18px; margin: 6px 0; }
+.guide-body li { margin-bottom: 6px; }
+.guide-body strong { color: var(--text); }
+.guide-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin: 8px 0;
+}
+.guide-body th {
+  text-align: left;
+  color: var(--gold);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--gold-dark);
+}
+.guide-body td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #222;
+  vertical-align: top;
+}
+.guide-body tr:last-child td { border-bottom: none; }
+.guide-warn {
+  background: rgba(212, 175, 55, .08);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 12.5px;
+}
+[data-theme="light"] .guide-block { border-color: #e0d8c4; }
+[data-theme="light"] .guide-body td { border-bottom-color: #ece5d2; }
+
 /* ----- Toast ----- */
 .toast {
   position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);

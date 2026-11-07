@@ -19,6 +19,13 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
 - Tableau de référence des titrages d'or (8K→24K : poinçon, % d'or, usage)
   sur la page d'accueil, sous le calculateur de fonte
+- Montant payé → pourcentage réel : par ligne de fonte et sur le total
+  (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
+- Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale
+  des pièces d'argent canadiennes (page d'accueil)
+- Onglet « Guide » : manuel de formation (or/argent/platine, argenterie,
+  monnaie canadienne et américaine, montres, billets, cartes, sécurité,
+  fiche d'évaluation) en sections dépliables — contenu statique dans index.html
 - Historique local des évaluations (localStorage)
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
