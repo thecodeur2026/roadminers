@@ -705,25 +705,6 @@ body {
 [data-theme="light"] .agc-row { border-bottom-color: #ece5d2; }
 [data-theme="light"] .agc-qty { background: #fff; border-color: #ddd3ba; color: #1a1a1a; }
 
-/* ----- Montant payé (fonte) ----- */
-.melt-paid-row {
-  grid-column: 1 / -1;
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 2px 8px;
-  font-size: 11.5px; color: var(--text-dim);
-}
-.melt-paid-row label { font-weight: 700; }
-.melt-paid-row input {
-  width: 96px; padding: 6px 8px; font-size: 13px;
-  color: var(--gold-light); background: var(--bg-raised);
-  border: 1px solid #333; border-radius: 8px; outline: none;
-}
-.melt-paid-row input:focus { border-color: var(--gold); }
-.melt-paid-pct { color: var(--gold); font-weight: 800; }
-[data-theme="light"] .melt-paid-row input {
-  background: #fff; border-color: #ddd3ba; color: #1a1a1a;
-}
-
 /* ----- Guide (manuel de formation) ----- */
 .guide-block {
   background: var(--bg-card);

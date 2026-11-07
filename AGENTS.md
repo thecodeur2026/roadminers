@@ -19,10 +19,10 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
 - Tableaux de référence des titrages en dépliants sur l'accueil : or (8K→24K)
   et argent/platine/palladium (poinçons, millièmes, %, notes)
-- Montant payé → pourcentage réel : par ligne de fonte et sur le total
-  (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
-- Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale
-  des pièces d'argent canadiennes (page d'accueil)
+- Montant payé → pourcentage réel : sur le total de la fonte et du lot de
+  pièces (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
+- Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale,
+  avec multiplicateur (ex. « 8 fois la face » → prix) — page d'accueil
 - Calculateur argent « lots de pièces » : quantité par type (50 ¢ CAN/US,
   dollars commémoratifs, olympiques, Kennedy 40 %...) → valeur 100 % Kitco,
   8 paliers et % réel du montant payé (app.js AGC_TYPES)
