@@ -17,6 +17,8 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Calculateur de fonte : matériau + grammes → prix d'achat max (Kitco) + paliers
   (sur la page d'accueil, sous les cours en direct)
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
+- Tableau de référence des titrages d'or (8K→24K : poinçon, % d'or, usage)
+  sur la page d'accueil, sous le calculateur de fonte
 - Historique local des évaluations (localStorage)
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
