@@ -775,7 +775,8 @@ body {
 
 /* ----- Dépliants de l'accueil (titrages) ----- */
 .home-fold { margin-top: 24px; }
-.home-fold .karat-card {
+.home-fold .karat-card,
+.home-fold .agc-card {
   border: none;
   background: none;
   padding: 0 6px 6px;
