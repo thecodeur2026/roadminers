@@ -140,7 +140,12 @@ sans tableau (normal).
   sinon `data/coins.json`. `loadSpot()` : Edge Function → `/api/spot.json` →
   localStorage → `data/spot-fallback.json`.
 - `sw.js` : bumper `CACHE` (roadminer-vN) à chaque déploiement modifiant les
-  assets ; ne jamais cacher `/api/*`.
+  assets ; ne jamais cacher `/api/*`. Navigations = réseau d'abord, cache en
+  secours ; `app.js` recharge la page automatiquement quand un nouveau SW
+  prend le contrôle (`controllerchange`, sauf première installation).
+- Démarrage : `bindEvents()` immédiat, `loadData()` en arrière-plan (la base
+  Supabase met ~2-3 s ; la recherche tapée pendant le chargement s'affiche
+  dès que les données arrivent).
 - Recherche : `normalize()` (minuscules, sans accents) + groupes de synonymes.
 
 ## Problèmes connus / améliorations possibles

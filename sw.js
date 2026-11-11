@@ -1,5 +1,5 @@
 /* ===== ROAD MINER — service worker (hors-ligne) ===== */
-const CACHE = "roadminer-v34";
+const CACHE = "roadminer-v35";
 const ASSETS = [
   "./",
   "./index.html",
@@ -34,6 +34,17 @@ self.addEventListener("fetch", (e) => {
   // ne jamais mettre en cache les cours en direct
   if (new URL(e.request.url).pathname.startsWith("/api/")) {
     e.respondWith(fetch(e.request));
+    return;
+  }
+  // navigations : réseau d'abord (nouvelle version tout de suite), cache en secours
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put("./index.html", copy));
+        return res;
+      }).catch(() => caches.match("./index.html"))
+    );
     return;
   }
   e.respondWith(

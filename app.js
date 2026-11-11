@@ -1154,9 +1154,17 @@ function bindEvents() {
 
 /* ---------- Service worker ---------- */
 function registerSW() {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW", e));
-  }
+  if (!("serviceWorker" in navigator)) return;
+  // rechargement automatique quand une NOUVELLE version prend le contrôle
+  // (pas à la première installation : pas de contrôleur existant)
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloaded) return;
+    reloaded = true;
+    location.reload();
+  });
+  navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW", e));
 }
 
 /* ---------- Installation PWA ---------- */
@@ -1199,8 +1207,8 @@ function initInstall() {
 /* ---------- Init ---------- */
 (async function init() {
   loadNumistaMap(); // en parallèle, non bloquant
-  await loadData();
-  bindEvents();
+  bindEvents();     // interface interactive TOUT DE SUITE
+  const dataReady = loadData(); // base en arrière-plan, sans bloquer l'affichage
   loadSpot();                    // cours en direct
   setInterval(loadSpot, 60000);  // rafraîchissement chaque minute
   setInterval(updateLiveSince, 1000); // compteur LIVE « il y a X s »
@@ -1211,4 +1219,8 @@ function initInstall() {
   initTheme();                   // thème clair / sombre
   initCoinDrag();                // pièce 3D manipulable
   registerSW();
+  await dataReady;
+  // si l'utilisateur a déjà tapé une recherche pendant le chargement, l'afficher
+  const q = $("#search-input").value.trim();
+  if (q) renderResults(search(q), q);
 })();
