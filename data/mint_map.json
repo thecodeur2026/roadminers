@@ -91,7 +91,7 @@
   "source_site": "mint.ca",
   "title": "Baby Gift Card Set (2024)",
   "url": "https://www.mint.ca/en/shop/coins/2024/baby-gift-card-set-2024-pack-245165",
-  "obv": null,
+  "obv": "https://www.mint.ca/globalassets/products/2024/l1/245165-2024-baby-giftset/245165_obv-1dollar-1198.png?hash=638370264510000000",
   "rev": "https://www.mint.ca/globalassets/products/2024/l1/245165-2024-baby-giftset/245165_rev-1198.png?hash=638370391200000000",
   "specs": "Mintage: 100,000; Finish: Brilliant Uncirculated; Composition: Three-ply nickel finish-plated steel; Weight: 3.95 g; Diameter: 21.2 mm; Edge: Plain"
  },
@@ -243,8 +243,8 @@
   "source_site": "mint.ca",
   "title": "Legacy of the Penny Five-Coin Set - Mintage: 3,000 (2017)",
   "url": "https://www.mint.ca/en/shop/coins/2017/legacy-of-the-penny-five-coin-set-mintage-3-000-2017-pack-158117",
-  "obv": null,
-  "rev": "https://www.mint.ca/globalassets/new-catalog/imported/prod-158117/158117_hero-1198.png?hash=638086275380000000",
+  "obv": "https://www.mint.ca/globalassets/new-catalog/imported/prod-158117/158117_obv_1967-1198.png?hash=637824354010000000",
+  "rev": "https://www.mint.ca/globalassets/new-catalog/imported/prod-158117/158117_rev_1908-1198.png?hash=637824353940000000",
   "specs": "Mintage: 3,000; Embellishments: Plating; Face Value: 1-cent (each); Composition: 99.99% pure silver; selective rose gold plating; Weight: 31.39 g; Diameter: 38 mm; Edge: serrated; Finish: proof; Artist: G.E. Kruger-Gray (reverse), Arnold Machin (obverse)"
  },
  "guide|46|CANADA|2 DOLLAR COINS||2022|Path of Knowledge (2 oz)|80.0": {
@@ -3747,7 +3747,7 @@
   "source_site": "mint.ca",
   "title": "1 oz. Pure Gold Pink Diamond Coin – Treasure (2021)",
   "url": "https://www.mint.ca/en/shop/coins/2021/1-oz-pure-gold-pink-diamond-coin-treasure",
-  "obv": null,
+  "obv": "https://www.mint.ca/globalassets/importedproductcatalog/imported/prod-201810/201810_obvtreas_latest-1198.png?hash=637877102220000000",
   "rev": "https://www.mint.ca/globalassets/importedproductcatalog/imported/prod-201810/201810_revtreas_latest-1198.png?hash=638042418960000000",
   "specs": "Mintage: 400; Composition: 99.99% pure gold with selective rose gold plating, and 5 (0.06 tcw) Pink diamonds from the Argyle diamond mine graded as Fancy Vivid and Fancy Intense set into a rose gold-plated jewellery enhancement; Embellishments: Gems; Weight: 0.5 g; Diameter: 30 mm; Edge: Serrated; Certificate: Serialized; Face Value: $200 dollars; Finish: Proof"
  },
@@ -3867,8 +3867,8 @@
   "source_site": "mint.ca",
   "title": "Pure Gold Pysanka Coin (2022)",
   "url": "https://www.mint.ca/en/shop/coins/2022/pure-gold-pysanka-coin",
-  "obv": null,
-  "rev": "https://www.mint.ca/globalassets/new-catalog/imported/prod-202669/202669_hero-1198.png?hash=638034314120000000",
+  "obv": "https://www.mint.ca/globalassets/new-catalog/imported/prod-202669/202669_obv-real-1198.png?hash=637824462860000000",
+  "rev": "https://www.mint.ca/globalassets/new-catalog/imported/prod-202669/202669_rev-fq-1198.png?hash=637824462870000000",
   "specs": "Mintage: 250; Composition: 99.99% pure gold; Weight: 58.5 g; Diameter: 45 mm; Edge: Interrupted serrations; Certificate: Serialized; Face Value: 250 dollars; Finish: Proof"
  },
  "guide|82|CANADA|250 DOLLAR GOLD COMMEMORATIVES|24 KARAT (.9999) GOLD|2022|Timber Wolf|6500.0": {

@@ -162,8 +162,9 @@ sans tableau (normal).
   pour celles-là, pas de vraie photo ni de caractéristiques — la pièce 3D
   affiche des faces dorées génériques. Élargir la couverture demanderait un
   nouvel enrichissement.
-- 2 types Numista (ids 484323, 603607) et 39 fiches mint.ca n'ont pas de photo
-  côté source — rien à afficher de plus.
+- 2 types Numista (ids 484323, 603607) et 12 fiches mint.ca n'ont pas de photo
+  côté source, et 21 fiches mint.ca n'ont que le revers (pages sans avers) —
+  rien à afficher de plus ; l'app duplique la face disponible.
 - La reconnaissance photo automatique des pièces n'existe pas (par design) ;
   la caméra elle-même a été retirée (nov. 2025) — tout passe par la recherche.
 - Les ~68 entrées `uncertain` mériteraient une re-vérification sur les PDF.

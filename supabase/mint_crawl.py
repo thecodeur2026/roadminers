@@ -24,13 +24,22 @@ def coin_urls():
         out.append(u)
     return out
 
-IMG_RE = re.compile(r'https://www\.mint\.ca/globalassets/[^"\s\']+?_(?:obv|rev)[-_]\d+\.(?:png|jpg|jpeg)(?:\?hash=\d+)?')
+IMG_RE = re.compile(r'https://www\.mint\.ca/globalassets/[^"\s\']+?\.(?:png|jpg|jpeg)(?:\?hash=\d+)?')
+GENERIC_RE = re.compile(r'_(?:obv|rev)[-_]\d+\.(?:png|jpg|jpeg)$')
 SPEC_RE = re.compile(r'<div class="tmx-pdp__spec">\s*<span class="d-block font-weight-bold">([^<]+)</span>\s*<span class="d-block mt-1">(.*?)</span>', re.S)
 OGT_RE = re.compile(r'<meta property="og:title" content="([^"]+)"')
 
 def clean(s):
     s = re.sub(r'<[^>]+>', '', s)
     return re.sub(r'\s+', ' ', s).replace('&nbsp;', ' ').strip()
+
+def pick(lst):
+    """Préfère l'image générique (_obv-1198.png) aux variantes par dénomination
+    (_obv-1dollar-1198.png) ; sinon la première trouvée."""
+    if not lst:
+        return None
+    gen = [u for u in lst if GENERIC_RE.search(u.split('?')[0])]
+    return gen[0] if gen else lst[0]
 
 def parse(html, url):
     p = {'url': url}
@@ -42,13 +51,15 @@ def parse(html, url):
     for k, v in SPEC_RE.findall(html):
         specs[clean(k)] = clean(v)
     p['specs'] = specs
-    obv = rev = None
+    obvs, revs = [], []
     for im in IMG_RE.findall(html):
-        name = im.split('?')[0]
-        if '_obv' in name and obv is None:
-            obv = im
-        elif '_rev' in name and rev is None:
-            rev = im
+        name = im.split('?')[0].replace('&quot;', '').rstrip('",')
+        if '_obv' in name:
+            obvs.append(im)
+        elif '_rev' in name:
+            revs.append(im)
+    obv = pick(obvs)
+    rev = pick(revs)
     # fall back to og:image for rev
     if rev is None:
         m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
