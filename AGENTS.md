@@ -17,6 +17,10 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Calculateur de fonte : matériau + grammes → prix d'achat max (Kitco) + paliers
   (sur la page d'accueil, sous les cours en direct)
 - Cours en direct or/argent/platine/palladium (USD + CAD), rafraîchi 5 min
+- Comparaison des prix : aujourd'hui vs 1 jour / 1 semaine / 1 mois / 3 mois
+  par métal, en CAD/once ou CAD/gramme ; historique accumulé en localStorage
+  (`roadminer_histv2`, fusionné avec l'historique serveur — se remplit au fil
+  des visites, « — » tant qu'une période n'a pas de données)
 - Tableaux de référence des titrages en dépliants sur l'accueil : or (8K→24K)
   et argent/platine/palladium (poinçons, millièmes, %, notes)
 - Montant payé → pourcentage réel : sur le total de la fonte et du lot de

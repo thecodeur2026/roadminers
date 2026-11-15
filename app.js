@@ -440,6 +440,8 @@ async function loadSpot() {
         renderSpotTicker();
         initMeltV2();
         initAgc();
+        mergeHistory();
+        renderCmp();
         drawSpotChart();
       }
     } catch {}
@@ -475,6 +477,8 @@ async function loadSpot() {
   renderSpotTicker();
   initMeltV2();
   initAgc();
+  mergeHistory();
+  renderCmp();
   drawSpotChart();
 }
 
@@ -545,6 +549,96 @@ function drawSpark(cv) {
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.fill();
+}
+
+/* --- Comparaison des prix : aujourd'hui vs 1 jour / 1 semaine / 1 mois / 3 mois --- */
+const CMP = { metal: "XAU", unit: "oz", hist: {} };
+const CMP_PERIODS = [
+  ["Aujourd'hui", 0],
+  ["1 jour", 86400000],
+  ["1 semaine", 7 * 86400000],
+  ["1 mois", 30 * 86400000],
+  ["3 mois", 91 * 86400000],
+];
+
+/* fusionne l'historique serveur + le point actuel dans l'accumulation locale */
+function mergeHistory() {
+  if (!SPOT) return;
+  let store = {};
+  try { store = JSON.parse(localStorage.getItem("roadminer_histv2")) || {}; } catch { store = {}; }
+  for (const [k] of METAL_LABELS) {
+    const arr = Array.isArray(store[k]) ? store[k] : [];
+    const seen = new Set(arr.map((p) => p[0]));
+    for (const p of ((SPOT.history || {})[k] || [])) {
+      if (Array.isArray(p) && p.length === 2 && !seen.has(p[0])) arr.push(p);
+    }
+    if (SPOT.spot && SPOT.spot[k] && SPOT.spot[k].usd_oz) {
+      arr.push([Date.now(), SPOT.spot[k].usd_oz]);
+    }
+    arr.sort((a, b) => a[0] - b[0]);
+    store[k] = arr.slice(-3000);
+  }
+  try { localStorage.setItem("roadminer_histv2", JSON.stringify(store)); } catch {}
+  CMP.hist = store;
+}
+
+function renderCmp() {
+  const metalsEl = $("#cmp-metals");
+  if (!metalsEl) return;
+  if (!metalsEl.children.length) {
+    for (const [k] of METAL_LABELS) {
+      const b = document.createElement("button");
+      b.className = "cmp-m" + (k === CMP.metal ? " active" : "");
+      b.dataset.m = k;
+      b.textContent = METAL_INFO[k].label;
+      b.addEventListener("click", () => { CMP.metal = k; renderCmp(); });
+      metalsEl.appendChild(b);
+    }
+    document.querySelectorAll(".cmp-u").forEach((b) =>
+      b.addEventListener("click", () => {
+        CMP.unit = b.dataset.u;
+        document.querySelectorAll(".cmp-u").forEach((x) => x.classList.toggle("active", x === b));
+        renderCmp();
+      }));
+  }
+  metalsEl.querySelectorAll(".cmp-m").forEach((b) =>
+    b.classList.toggle("active", b.dataset.m === CMP.metal));
+  const row = $("#cmp-row");
+  if (!SPOT || !SPOT.spot || !SPOT.spot[CMP.metal]) { row.innerHTML = ""; return; }
+  const usdcad = SPOT.usdcad || 1;
+  const nowUsd = SPOT.spot[CMP.metal].usd_oz;
+  const pts = CMP.hist[CMP.metal] || (SPOT.history || {})[CMP.metal] || [];
+  const now = Date.now();
+  const priceOf = (usdOz) =>
+    (usdOz * usdcad / (CMP.unit === "g" ? 31.1034768 : 1))
+      .toLocaleString("fr-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  row.innerHTML = CMP_PERIODS.map(([label, back]) => {
+    let price = null;
+    if (!back) {
+      price = nowUsd;
+    } else {
+      const target = now - back;
+      let best = null, bd = Infinity;
+      for (const p of pts) {
+        const dd = Math.abs(p[0] - target);
+        if (dd < bd) { bd = dd; best = p; }
+      }
+      const tol = Math.max(12 * 3600000, back * 0.25);
+      if (best && bd <= tol) price = best[1];
+    }
+    const pct = price != null ? ((nowUsd - price) / price) * 100 : null;
+    const up = pct == null || pct >= 0;
+    return `<div class="cmp-item">
+      <div class="cmp-label">${label}</div>
+      <div class="cmp-price">${price != null ? priceOf(price) : "—"}</div>
+      <div class="cmp-unit-label">CAD / ${CMP.unit === "g" ? "Gramme" : "Once"}</div>
+      ${pct != null
+        ? `<span class="chg ${up ? "up" : "down"}">${up ? "+" : "−"}${Math.abs(pct).toFixed(2)} %</span>`
+        : `<span class="chg cmp-na">pas de données</span>`}
+    </div>`;
+  }).join("");
+  $("#cmp-note").textContent =
+    "Historique accumulé sur cet appareil + serveur : les périodes sans données affichent « — » et se remplissent au fil des visites. Prix passés convertis au taux USD→CAD actuel.";
 }
 
 /* --- Calculateur argent : lots de pièces (quantité × prix Kitco au gramme) --- */
