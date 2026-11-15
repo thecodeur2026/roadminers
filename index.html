@@ -30,6 +30,7 @@
 
 <main id="app">
 
+
   <!-- ============ VUE RECHERCHE (par défaut) ============ -->
   <section id="view-search" class="view active">
     <div class="search-box">
@@ -607,6 +608,18 @@
   </section>
 
 </main>
+
+<!-- ============ ÉCRAN DE BLOCAGE ============ -->
+<div id="blocker" class="blocker" hidden>
+  <div class="blocker-panel">
+    <div class="logo-mark" style="margin:0 auto 14px">R</div>
+    <h2 class="blocker-title">ROAD <span>MINERS</span></h2>
+    <p id="blocker-msg">Application temporairement indisponible.</p>
+    <input type="text" id="blocker-code" class="adm-input" placeholder="Code d'accès" autocomplete="off">
+    <button class="btn-gold" id="blocker-go" style="width:100%;margin-top:12px">Entrer</button>
+    <p id="blocker-err" class="blocker-err"></p>
+  </div>
+</div>
 
 <nav class="bottom-nav">
   <button class="nav-btn active" data-view="view-search">

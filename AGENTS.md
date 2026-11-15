@@ -33,6 +33,11 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Onglet « Guide » : manuel de formation (or/argent/platine, argenterie,
   monnaie canadienne et américaine, montres, billets, cartes, sécurité,
   fiche d'évaluation) en sections dépliables — contenu statique dans index.html
+- Page admin (`admin.html`, non liée dans l'app) : code administrateur →
+  bloquer/débloquer le site (écran plein + message + saisie de code dans
+  l'app), créer/révoquer/supprimer des codes d'accès invités ou admins,
+  stats système. Code admin initial : `RM-ADMIN-2026` — À CHANGER.
+  Blocage de NIVEAU APPLICATIF : l'API Supabase reste publique.
 - Historique local des évaluations (localStorage)
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
@@ -130,6 +135,12 @@ sans tableau (normal).
 ## Supabase — état
 
 - Table `entries` : 8 361 lignes, RLS lecture publique
+- Table `app_control` : blocage du site (1 ligne, lecture publique)
+- Table `access_codes` : codes invités/admins, **illisible publiquement** ;
+  tout passe par les RPC `verify_access`, `admin_set_blocked`,
+  `admin_list_codes`, `admin_add_code`, `admin_set_active`,
+  `admin_delete_code` (security definer). Schéma : `supabase/admin.sql`
+  (déjà exécuté).
 - Table `spot_cache` : créée, non utilisée (les cours sont scrapés à la demande)
 - Edge Function `spot` : ACTIVE, `verify_jwt=false`, CORS ouvert
 - Ré-import : `SUPABASE_URL=... SUPABASE_KEY=... python3 supabase/import_data.py`

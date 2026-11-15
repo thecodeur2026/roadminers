@@ -1237,6 +1237,12 @@ function bindEvents() {
   document.querySelectorAll(".nav-btn").forEach((b) =>
     b.addEventListener("click", () => showView(b.dataset.view)));
 
+  // écran de blocage
+  $("#blocker-go").addEventListener("click", submitBlockerCode);
+  $("#blocker-code").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitBlockerCode();
+  });
+
   $("#btn-clear-history").addEventListener("click", () => {
     if (confirm("Vider tout l'historique ?")) {
       localStorage.removeItem(HIST_KEY);
@@ -1244,6 +1250,67 @@ function bindEvents() {
       toast("Historique vidé");
     }
   });
+}
+
+/* ---------- Contrôle d'accès (blocage du site via admin) ---------- */
+async function verifyAccessCode(code) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_access`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ p_code: code }),
+  });
+  return res.ok ? await res.json() : "denied"; // 'guest' | 'admin' | 'denied'
+}
+
+async function checkAccess() {
+  if (typeof SUPABASE_ANON_KEY === "undefined" || !SUPABASE_ANON_KEY) return;
+  const overlay = $("#blocker");
+  let blocked = false, message = "";
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/app_control?id=eq.1&select=blocked,message`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+        cache: "no-store" });
+    const rows = await res.json();
+    blocked = !!(rows && rows[0] && rows[0].blocked);
+    message = (rows && rows[0] && rows[0].message) || "";
+  } catch { return; } // réseau en panne : ne pas bloquer
+  if (!blocked) { overlay.hidden = true; return; }
+  const saved = localStorage.getItem("roadminer_access") || "";
+  if (saved) {
+    try {
+      if ((await verifyAccessCode(saved)) !== "denied") { overlay.hidden = true; return; }
+    } catch { overlay.hidden = true; return; } // RPC injoignable : ne pas piéger l'utilisateur
+    localStorage.removeItem("roadminer_access"); // code révoqué
+  }
+  if (message) $("#blocker-msg").textContent = message;
+  overlay.hidden = false;
+  setTimeout(() => $("#blocker-code").focus(), 100);
+}
+
+async function submitBlockerCode() {
+  const inp = $("#blocker-code");
+  const err = $("#blocker-err");
+  const code = inp.value.trim();
+  if (!code) return;
+  err.textContent = "Vérification…";
+  try {
+    const role = await verifyAccessCode(code);
+    if (role === "denied") {
+      err.textContent = "Code invalide ou révoqué.";
+      inp.select();
+      return;
+    }
+    localStorage.setItem("roadminer_access", code);
+    $("#blocker").hidden = true;
+    toast(role === "admin" ? "Accès administrateur" : "Bienvenue !");
+  } catch {
+    err.textContent = "Connexion impossible — réessayez.";
+  }
 }
 
 /* ---------- Service worker ---------- */
@@ -1313,6 +1380,8 @@ function initInstall() {
   initTheme();                   // thème clair / sombre
   initCoinDrag();                // pièce 3D manipulable
   registerSW();
+  checkAccess();                 // blocage éventuel du site (admin)
+  setInterval(checkAccess, 60000);
   await dataReady;
   // si l'utilisateur a déjà tapé une recherche pendant le chargement, l'afficher
   const q = $("#search-input").value.trim();
