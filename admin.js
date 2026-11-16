@@ -50,7 +50,6 @@ async function login() {
     err.textContent = "Connexion impossible — réessayez.";
   }
 }
-
 async function tryRestore() {
   const saved = sessionStorage.getItem("roadminer_admin") || "";
   if (!saved) return;
@@ -69,6 +68,7 @@ function showDash() {
   $("#adm-dash").hidden = false;
   refreshStatus();
   loadCodes();
+  loadTx();
   loadStats();
 }
 
@@ -160,6 +160,28 @@ async function addCode() {
     loadCodes();
   } else {
     toast("Action refusée");
+  }
+}
+
+/* ---------- Transactions ---------- */
+async function loadTx() {
+  const box = $("#adm-tx");
+  try {
+    const txs = await rpc("admin_list_transactions", { p_admin: ADMIN });
+    if (!txs || !txs.length) {
+      box.innerHTML = `<p class="hint-note">Aucune transaction enregistrée.</p>`;
+      return;
+    }
+    box.innerHTML = txs.map((t) => `
+      <div class="code-row">
+        <div class="code-main">
+          <strong style="letter-spacing:0">${escapeHtml(t.client_nom || "—")}</strong>
+          <small>${new Date(t.created_at).toLocaleString("fr-CA")} · ${escapeHtml(t.seller_code)} · ${t.nb_items} article(s) · ${t.nb_photos} photo(s)</small>
+        </div>
+        <span class="agc-sub">${Number(t.total).toLocaleString("fr-CA", { minimumFractionDigits: 2 })} $</span>
+      </div>`).join("");
+  } catch {
+    box.innerHTML = `<p class="hint-note">Erreur de chargement.</p>`;
   }
 }
 

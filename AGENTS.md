@@ -40,6 +40,15 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   or/argent/diamant (`showWelcome`). Codes admin actuels : `RM-BOSS-2026`,
   `RM-ADMIN-2026`. Blocage de NIVEAU APPLICATIF : l'API Supabase reste publique.
 - Historique local des évaluations (localStorage)
+- Onglet « Transaction » (achat comptoir) : fiche client (nom, tél, naissance,
+  pièce d'identité, adresse, langue, no de sac), articles alimentés en 1 clic
+  depuis la fonte / le lot de pièces / la valeur faciale / la fiche pièce
+  (avec % et montants), photos des articles (5 max), totaux par catégorie
+  (mêmes catégories que le formulaire Prextra), facture imprimable
+  (window.print, #invoice), enregistrement Supabase via RPC
+  `save_transaction` (code employé requis). Table `transactions` illisible
+  publiquement ; liste admin via `admin_list_transactions` (admin.html).
+  Schéma : `supabase/transactions.sql` (exécuté).
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
 

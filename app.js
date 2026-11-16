@@ -724,6 +724,8 @@ function updateAgc() {
   }
   const paidRow = $("#agc-paid-row");
   if (paidRow) paidRow.hidden = total <= 0;
+  const agcTx = $("#agc-to-tx");
+  if (agcTx) agcTx.hidden = total <= 0;
   const paidInp = $("#agc-paid");
   const paidOut = $("#agc-paid-pct");
   if (paidInp && paidOut) {
@@ -867,6 +869,7 @@ function updateMeltV2() {
   });
   // % personnalisé (uniquement sur le total de référence 100 % Kitco)
   $("#custom-pct-zone").hidden = !anyVal;
+  $("#melt-to-tx").hidden = !anyVal;
   updateCustomPct(total100);
   $("#melt-result").innerHTML = anyVal
     ? `<span class="melt-total-label">TOTAL À PAYER (vos % par article)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">${details.join(" + ")}</span>`
@@ -1105,6 +1108,248 @@ function initBgFx() {
   })();
 }
 
+/* ---------- Transaction (achat comptoir) ---------- */
+const TX_CATS = [
+  "PIÈCES EN ARGENT", "PIÈCES EN OR", "BIJOUX EN OR", "BIJUX / OBJETS EN ARGENT",
+  "MONNAIE ET BILLET DE COLLECTION", "MONTRES", "DIAMANTS",
+  "CARTE DE SPORT / NON-SPORT", "JOUETS / PUBLICITÉS", "TABLEAUX",
+  "OBJETS MILITAIRE", "AUTRES",
+];
+let txItems = [];   // {label, cat, amount}
+let txPhotos = [];  // dataURLs (compressées)
+
+function shrinkImage(img, max, quality) {
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+function txTotal() {
+  return txItems.reduce((s, it) => s + (it.amount || 0), 0);
+}
+
+function addTxItem(label, cat, amount) {
+  if (!(amount > 0)) return;
+  txItems.push({ label, cat, amount });
+  renderTx();
+  toast("Ajouté à la transaction : " + fmt(amount));
+}
+
+function renderTx() {
+  const box = $("#tx-items");
+  if (!box) return;
+  if (!txItems.length) {
+    box.innerHTML = `<p class="hint-note">Aucun article — ajoutez depuis la recherche, la fonte, le lot de pièces, ou une ligne libre ci-dessous.</p>`;
+  } else {
+    box.innerHTML = "";
+    txItems.forEach((it, i) => {
+      const row = document.createElement("div");
+      row.className = "code-row";
+      row.innerHTML = `
+        <div class="code-main">
+          <strong style="letter-spacing:0">${escapeHtml(it.label)}</strong>
+          <small>${escapeHtml(it.cat)}</small>
+        </div>
+        <span class="agc-sub">${fmt(it.amount)}</span>
+        <button class="row-del" aria-label="Retirer">&times;</button>`;
+      row.querySelector(".row-del").addEventListener("click", () => {
+        txItems.splice(i, 1);
+        renderTx();
+      });
+      box.appendChild(row);
+    });
+  }
+  // totaux par catégorie (style formulaire comptoir)
+  const cats = $("#tx-cats");
+  const sums = {};
+  for (const it of txItems) sums[it.cat] = (sums[it.cat] || 0) + it.amount;
+  const used = TX_CATS.filter((c) => sums[c]);
+  cats.innerHTML = used.length
+    ? used.map((c) => `<div class="tx-cat"><span>${c}</span><strong>${fmt(sums[c])}</strong></div>`).join("")
+    : "";
+  $("#tx-total").textContent = fmt(txTotal());
+}
+
+function meltCatFor(matName) {
+  if (/gold|K\b/i.test(matName)) return "BIJOUX EN OR";
+  if (/silver|sterling|ag /i.test(matName)) return "BIJUX / OBJETS EN ARGENT";
+  return "AUTRES";
+}
+
+function sendMeltToTx() {
+  let n = 0;
+  for (const row of meltRows) {
+    const { val, pct, g } = meltRowValue(row);
+    if (val > 0) {
+      const m = SPOT.materials[row.mat >= 0 ? row.mat : defaultMatIndex()] || SPOT.materials[0];
+      addTxItem(`Fonte ${m.name} — ${g} g × ${pct} %`, meltCatFor(m.name), Math.round(val * 100) / 100);
+      n++;
+    }
+  }
+  if (n) showView("view-tx");
+}
+
+function sendAgcToTx() {
+  let n = 0;
+  AGC_TYPES.forEach((t, i) => {
+    const qty = parseFloat(agcQty[i]) || 0;
+    const val = qty * t.g * agcPricePerG(t);
+    if (val > 0) {
+      addTxItem(`${qty} × ${t.label} (${t.fineness})`, "PIÈCES EN ARGENT", Math.round(val * 100) / 100);
+      n++;
+    }
+  });
+  if (n) showView("view-tx");
+}
+
+function sendFaceToTx() {
+  const g = parseFloat($("#face-grams").value);
+  const m = parseFloat($("#face-mult").value);
+  if (!(g > 0) || !(m > 0)) return;
+  const face = g / 23.32;
+  addTxItem(`Argent au poids — ${g} g → ${face.toFixed(2)} $ facial × ${m}`,
+    "PIÈCES EN ARGENT", Math.round(face * m * 100) / 100);
+  showView("view-tx");
+}
+
+function addDetailToTx() {
+  if (!currentItem) return;
+  const real = parseFloat($("#realprice").value);
+  const amount = (!isNaN(real) && real > 0) ? real : currentItem.price;
+  addTxItem(entryTitle(currentItem), "MONNAIE ET BILLET DE COLLECTION", amount || 0);
+}
+
+function handleTxPhotos(files) {
+  for (const file of Array.from(files).slice(0, 5 - txPhotos.length)) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        txPhotos.push(shrinkImage(img, 500, 0.6));
+        renderTxPhotos();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderTxPhotos() {
+  const box = $("#tx-photos");
+  box.innerHTML = "";
+  txPhotos.forEach((p, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "tx-photo";
+    wrap.innerHTML = `<img src="${p}" alt="photo ${i + 1}"><button class="row-del" aria-label="Retirer">&times;</button>`;
+    wrap.querySelector(".row-del").addEventListener("click", () => {
+      txPhotos.splice(i, 1);
+      renderTxPhotos();
+    });
+    box.appendChild(wrap);
+  });
+}
+
+async function saveTx() {
+  if (!txItems.length) { toast("Aucun article dans la transaction"); return; }
+  if (!$("#tx-nom").value.trim()) { toast("Nom du client requis"); $("#tx-nom").focus(); return; }
+  let code = $("#tx-emp").value.trim() || localStorage.getItem("roadminer_access") || "";
+  if (!code) { toast("Code employé requis"); $("#tx-emp").focus(); return; }
+  let role;
+  try { role = await verifyAccessCode(code); } catch { toast("Connexion impossible"); return; }
+  if (role === "denied") { toast("Code employé invalide"); return; }
+  localStorage.setItem("roadminer_access", code);
+  const client = {
+    nom: $("#tx-nom").value.trim(),
+    tel: $("#tx-tel").value.trim(),
+    naissance: $("#tx-naissance").value,
+    idnum: $("#tx-idnum").value.trim(),
+    adresse: $("#tx-adresse").value.trim(),
+    langue: $("#tx-langue").value,
+    sac: $("#tx-sac").value.trim(),
+  };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_transaction`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json" },
+      body: JSON.stringify({
+        p_code: code, p_client: client,
+        p_items: txItems, p_photos: txPhotos, p_total: txTotal(),
+      }),
+    });
+    const ok = await res.json();
+    if (ok === true) {
+      toast("Transaction enregistrée");
+      pushHistory({
+        type: "lot", when: new Date().toISOString(),
+        title: `Transaction — ${client.nom}`,
+        ref: txItems.map((it) => it.label).join(" • "),
+        guidePrice: txTotal(), realPrice: null,
+      });
+    } else {
+      toast("Enregistrement refusé");
+    }
+  } catch { toast("Erreur réseau — transaction NON enregistrée"); }
+}
+
+function printTx() {
+  const inv = $("#invoice");
+  const now = new Date();
+  const sums = {};
+  for (const it of txItems) sums[it.cat] = (sums[it.cat] || 0) + it.amount;
+  inv.innerHTML = `
+    <div class="inv-head">
+      <h1>ROAD MINERS</h1>
+      <p>TRADE • VALUE • SECURITY</p>
+      <h2>Facture d'achat comptoir</h2>
+      <p>Date : ${now.toLocaleDateString("fr-CA")} ${now.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</p>
+    </div>
+    <div class="inv-block">
+      <strong>Client</strong><br>
+      Nom : ${escapeHtml($("#tx-nom").value.trim())}<br>
+      Téléphone : ${escapeHtml($("#tx-tel").value.trim())} &nbsp;•&nbsp;
+      Naissance : ${escapeHtml($("#tx-naissance").value)}<br>
+      No pièce d'identité : ${escapeHtml($("#tx-idnum").value.trim())}<br>
+      Adresse : ${escapeHtml($("#tx-adresse").value.trim())} &nbsp;•&nbsp;
+      Langue : ${escapeHtml($("#tx-langue").value)} &nbsp;•&nbsp;
+      No de sac : ${escapeHtml($("#tx-sac").value.trim())}
+    </div>
+    <table class="inv-table">
+      <thead><tr><th>Article</th><th>Catégorie</th><th>Montant</th></tr></thead>
+      <tbody>
+        ${txItems.map((it) => `<tr><td>${escapeHtml(it.label)}</td><td>${escapeHtml(it.cat)}</td><td>${fmt(it.amount)}</td></tr>`).join("")}
+      </tbody>
+    </table>
+    <div class="inv-block">
+      ${Object.keys(sums).map((c) => `${c} : <strong>${fmt(sums[c])}</strong>`).join(" &nbsp;•&nbsp; ")}
+    </div>
+    <p class="inv-total">TOTAL PAYÉ : ${fmt(txTotal())}</p>
+    ${txPhotos.length ? `<div class="inv-photos">${txPhotos.map((p) => `<img src="${p}">`).join("")}</div>` : ""}
+    <p class="inv-legal">Encan International n'est aucunement responsable d'infractions à la loi sur l'impôt. Il est de votre devoir de déclarer tout gain en capital. Le client déclare être le propriétaire de la marchandise vendue ayant acquis celle-ci au courant de transactions légales.</p>
+    <div class="inv-sign">
+      <div>Signature du client</div>
+      <div>Signature de l'employé</div>
+    </div>`;
+  window.print();
+}
+
+function resetTx() {
+  if (txItems.length && !confirm("Vider la transaction en cours ?")) return;
+  txItems = [];
+  txPhotos = [];
+  for (const id of ["tx-nom", "tx-tel", "tx-naissance", "tx-idnum", "tx-adresse", "tx-sac"]) {
+    $("#" + id).value = "";
+  }
+  $("#tx-langue").value = "Français";
+  $("#tx-free-label").value = "";
+  $("#tx-free-amount").value = "";
+  renderTx();
+  renderTxPhotos();
+}
+
 /* ---------- Historique ---------- */
 const HIST_KEY = "roadminer_history";
 
@@ -1227,6 +1472,7 @@ function bindEvents() {
     $("#face-mult-result").textContent = (face != null && !isNaN(m) && m > 0)
       ? fmt(face * m)
       : "—";
+    $("#face-to-tx").hidden = !(face != null && !isNaN(m) && m > 0);
   };
   faceInp.addEventListener("input", updateFace);
   faceMult.addEventListener("input", () => {
@@ -1242,6 +1488,30 @@ function bindEvents() {
   $("#blocker-code").addEventListener("keydown", (e) => {
     if (e.key === "Enter") submitBlockerCode();
   });
+
+  // transaction
+  $("#tx-free-cat").innerHTML = TX_CATS.map((c) => `<option>${c}</option>`).join("");
+  try { $("#tx-emp").value = localStorage.getItem("roadminer_access") || ""; } catch {}
+  $("#tx-add-free").addEventListener("click", () => {
+    const label = $("#tx-free-label").value.trim();
+    const amount = parseFloat($("#tx-free-amount").value);
+    if (!label || !(amount > 0)) { toast("Libellé et montant requis"); return; }
+    addTxItem(label, $("#tx-free-cat").value, amount);
+    $("#tx-free-label").value = "";
+    $("#tx-free-amount").value = "";
+  });
+  $("#tx-photo-btn").addEventListener("click", () => $("#tx-photo-input").click());
+  $("#tx-photo-input").addEventListener("change", (ev) => {
+    handleTxPhotos(ev.target.files);
+    ev.target.value = "";
+  });
+  $("#tx-save").addEventListener("click", saveTx);
+  $("#tx-print").addEventListener("click", printTx);
+  $("#tx-reset").addEventListener("click", resetTx);
+  $("#melt-to-tx").addEventListener("click", sendMeltToTx);
+  $("#agc-to-tx").addEventListener("click", sendAgcToTx);
+  $("#face-to-tx").addEventListener("click", sendFaceToTx);
+  $("#btn-add-tx").addEventListener("click", addDetailToTx);
 
   $("#btn-clear-history").addEventListener("click", () => {
     if (confirm("Vider tout l'historique ?")) {

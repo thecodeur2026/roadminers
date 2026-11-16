@@ -83,6 +83,7 @@
           </div>
         </div>
         <div class="tiers" id="melt-tiers"></div>
+        <button class="btn-outline" id="melt-to-tx" style="width:100%;margin-top:10px" hidden>&rarr; Envoyer vers la transaction</button>
         <p class="hint-note" id="melt-source">100 % = prix <strong>Non-Wholesale</strong> par gramme de la page <a href="https://online.kitco.com/refining/gold-silver-CAD.html" target="_blank" rel="noopener" style="color:var(--gold)">Kitco refining (CAD)</a>, selon la contenance — cours en direct.</p>
       </div>
 
@@ -100,6 +101,7 @@
           <strong id="face-mult-result">—</strong>
         </div>
         <p class="hint-note">Prix = valeur faciale × multiplicateur (ex. « 8 fois la face »).</p>
+        <button class="btn-outline" id="face-to-tx" style="width:100%;margin-top:8px" hidden>&rarr; Envoyer vers la transaction</button>
       </div>
 
       <h3 class="section-title">Comparaison des prix</h3>
@@ -127,6 +129,7 @@
           <strong id="agc-paid-pct">—</strong>
         </div>
         <div class="tiers" id="agc-tiers"></div>
+        <button class="btn-outline" id="agc-to-tx" style="width:100%;margin-top:10px" hidden>&rarr; Envoyer vers la transaction</button>
         <p class="hint-note">Prix au gramme Kitco Non-Wholesale en direct (même base que le calculateur de fonte), selon la teneur de chaque pièce. <strong>Vérifiez la valeur de collection dans la recherche avant d'offrir la fonte.</strong></p>
       </div>
       </details>
@@ -362,6 +365,7 @@
     </div>
 
     <button class="btn-gold btn-save" id="btn-save">Enregistrer l'évaluation</button>
+    <button class="btn-outline" id="btn-add-tx" style="width:100%;margin-top:8px">&rarr; Ajouter à la transaction</button>
   </section>
 
   <!-- ============ VUE GUIDE (manuel de formation) ============ -->
@@ -599,6 +603,59 @@
     </details>
   </section>
 
+  <!-- ============ VUE TRANSACTION (achat comptoir) ============ -->
+  <section id="view-tx" class="view">
+    <h3 class="section-title" style="margin-top:0">Transaction — achat comptoir</h3>
+
+    <div class="detail-card">
+      <div class="tx-grid">
+        <input class="adm-input" id="tx-nom" placeholder="Nom client *" autocomplete="off">
+        <input class="adm-input" id="tx-tel" placeholder="Téléphone" inputmode="tel" autocomplete="off">
+        <input class="adm-input" id="tx-naissance" type="date" aria-label="Date de naissance">
+        <input class="adm-input" id="tx-idnum" placeholder="No pièce d'identité" autocomplete="off">
+        <input class="adm-input" id="tx-adresse" placeholder="Adresse client" autocomplete="off">
+        <div class="tx-grid-2col">
+          <select class="adm-input" id="tx-langue">
+            <option value="Français">Français</option>
+            <option value="English">English</option>
+          </select>
+          <input class="adm-input" id="tx-sac" placeholder="No de sac" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-title">Articles</h3>
+    <div class="detail-card">
+      <div id="tx-items"><p class="hint-note">Aucun article — ajoutez depuis la recherche, la fonte, le lot de pièces, ou une ligne libre ci-dessous.</p></div>
+      <div class="adm-add">
+        <input class="adm-input" id="tx-free-label" placeholder="Ligne libre (ex. bracelet 10K)">
+        <div class="adm-btn-row">
+          <input class="adm-input" id="tx-free-amount" type="number" min="0" step="0.01" placeholder="Montant $" style="flex:1">
+          <select class="adm-input" id="tx-free-cat" style="flex:1"></select>
+          <button class="btn-gold" id="tx-add-free">+ Ajouter</button>
+        </div>
+      </div>
+      <div id="tx-cats" class="tx-cats"></div>
+      <p class="tx-total">TOTAL : <strong id="tx-total">0,00 $</strong></p>
+    </div>
+
+    <h3 class="section-title">Photos des articles</h3>
+    <div class="detail-card">
+      <input type="file" id="tx-photo-input" accept="image/*" capture="environment" multiple hidden>
+      <button class="btn-outline" id="tx-photo-btn" style="width:100%">&#128247; Prendre / choisir des photos</button>
+      <div id="tx-photos" class="tx-photos"></div>
+    </div>
+
+    <div class="detail-card" style="margin-top:14px">
+      <label class="adm-label" for="tx-emp" style="margin-top:0">Code employé (requis pour enregistrer) :</label>
+      <input class="adm-input" id="tx-emp" placeholder="Code d'accès" autocomplete="off">
+    </div>
+
+    <button class="btn-gold btn-save" id="tx-save">Enregistrer la transaction</button>
+    <button class="btn-outline" id="tx-print" style="width:100%;margin-top:8px">&#128438; Imprimer la facture</button>
+    <button class="btn-outline" id="tx-reset" style="width:100%;margin-top:8px">Nouvelle transaction</button>
+  </section>
+
   <!-- ============ VUE HISTORIQUE ============ -->
   <section id="view-history" class="view">
     <h3 class="section-title">Évaluations enregistrées</h3>
@@ -608,6 +665,9 @@
   </section>
 
 </main>
+
+<!-- ============ FACTURE (impression) ============ -->
+<div id="invoice"></div>
 
 <!-- ============ ÉCRAN DE BLOCAGE ============ -->
 <div id="blocker" class="blocker" hidden>
@@ -634,6 +694,9 @@
 <nav class="bottom-nav">
   <button class="nav-btn active" data-view="view-search">
     <span class="nav-icon">&#128269;</span>Recherche
+  </button>
+  <button class="nav-btn" data-view="view-tx">
+    <span class="nav-icon">&#128184;</span>Transaction
   </button>
   <button class="nav-btn" data-view="view-guide">
     <span class="nav-icon">&#128214;</span>Guide
