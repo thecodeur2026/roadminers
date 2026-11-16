@@ -1,5 +1,5 @@
 /* ===== ROAD MINER — service worker (hors-ligne) ===== */
-const CACHE = "roadminer-v38";
+const CACHE = "roadminer-v39";
 const ASSETS = [
   "./",
   "./index.html",

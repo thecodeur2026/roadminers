@@ -1307,10 +1307,89 @@ async function submitBlockerCode() {
     }
     localStorage.setItem("roadminer_access", code);
     $("#blocker").hidden = true;
-    toast(role === "admin" ? "Accès administrateur" : "Bienvenue !");
+    showWelcome(role);
   } catch {
     err.textContent = "Connexion impossible — réessayez.";
   }
+}
+
+/* ---------- Bienvenue après code valide : message + paillettes ---------- */
+function showWelcome(role) {
+  const ov = $("#welcome");
+  if (!ov) return;
+  $("#welcome-title").textContent = role === "admin" ? "Bienvenue, boss !" : "Bienvenue !";
+  $("#welcome-sub").textContent = role === "admin"
+    ? "Que tes trouvailles du jour soient en or. Bonne journée !"
+    : "Bonne chasse aux trésors — que tes trouvailles brillent comme l'or, l'argent et le diamant !";
+  ov.hidden = false;
+  ov.classList.remove("welcome-out");
+  const close = () => {
+    if (ov.hidden) return;
+    ov.classList.add("welcome-out");
+    setTimeout(() => { ov.hidden = true; }, 450);
+  };
+  ov.onclick = close; // toucher pour passer
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    setTimeout(close, 1800);
+    return;
+  }
+  const cv = $("#welcome-fx");
+  const ctx = cv.getContext("2d");
+  cv.width = innerWidth;
+  cv.height = innerHeight;
+  // or, or clair, argent, argent clair, diamant bleuté, blanc
+  const COLORS = [[212,175,55],[242,213,126],[192,192,205],[232,232,240],[191,239,255],[255,255,255]];
+  const parts = [];
+  for (let i = 0; i < 110; i++) {
+    parts.push({
+      x: Math.random() * cv.width,
+      y: -20 - Math.random() * cv.height * 0.5,
+      r: 1.5 + Math.random() * 3.5,
+      vy: 1.2 + Math.random() * 2.6,
+      vx: (Math.random() - 0.5) * 1.2,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.25,
+      tw: Math.random() * Math.PI * 2,
+      c: COLORS[(Math.random() * COLORS.length) | 0],
+      star: Math.random() < 0.25, // éclats en croix = diamant
+    });
+  }
+  const t0 = performance.now();
+  (function tick(t) {
+    const el = (t - t0) / 1000;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of parts) {
+      p.x += p.vx + Math.sin(el * 2 + p.tw) * 0.6;
+      p.y += p.vy;
+      p.rot += p.vr;
+      if (p.y > cv.height + 20) { p.y = -20; p.x = Math.random() * cv.width; }
+      const alpha = Math.max(0, Math.min(1, 1.4 - el / 2.2)) * (0.55 + 0.45 * Math.sin(el * 6 + p.tw));
+      const [r, g, b] = p.c;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      if (p.star) {
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-p.r * 2.2, 0); ctx.lineTo(p.r * 2.2, 0);
+        ctx.moveTo(0, -p.r * 2.2); ctx.lineTo(0, p.r * 2.2);
+        ctx.stroke();
+      } else {
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r * 2);
+        grad.addColorStop(0, `rgba(255,255,255,${alpha})`);
+        grad.addColorStop(0.4, `rgba(${r},${g},${b},${alpha})`);
+        grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    if (el < 2.6 && !ov.hidden) requestAnimationFrame(tick);
+    else close();
+  })(t0);
 }
 
 /* ---------- Service worker ---------- */

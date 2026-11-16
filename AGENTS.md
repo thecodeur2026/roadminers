@@ -36,8 +36,9 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
 - Page admin (`admin.html`, non liée dans l'app) : code administrateur →
   bloquer/débloquer le site (écran plein + message + saisie de code dans
   l'app), créer/révoquer/supprimer des codes d'accès invités ou admins,
-  stats système. Code admin initial : `RM-ADMIN-2026` — À CHANGER.
-  Blocage de NIVEAU APPLICATIF : l'API Supabase reste publique.
+  stats système. Après un code valide : écran de bienvenue avec paillettes
+  or/argent/diamant (`showWelcome`). Codes admin actuels : `RM-BOSS-2026`,
+  `RM-ADMIN-2026`. Blocage de NIVEAU APPLICATIF : l'API Supabase reste publique.
 - Historique local des évaluations (localStorage)
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
