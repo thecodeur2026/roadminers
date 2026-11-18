@@ -3,6 +3,7 @@
 
 const $ = (sel) => document.querySelector(sel);
 let ADMIN = "";
+let CODES = [];
 
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, (c) =>
@@ -69,6 +70,7 @@ function showDash() {
   refreshStatus();
   loadCodes();
   loadTx();
+  loadTrips();
   loadStats();
 }
 
@@ -112,6 +114,7 @@ async function loadCodes() {
   const box = $("#adm-codes");
   try {
     const codes = await rpc("admin_list_codes", { p_admin: ADMIN });
+    CODES = codes || [];
     if (!codes || !codes.length) {
       box.innerHTML = `<p class="hint-note">Aucun code.</p>`;
       return;
@@ -286,6 +289,183 @@ function exportTxCsv() {
   toast("Registre exporté (" + TXS.length + " transactions)");
 }
 
+/* ---------- Voyages (tournées employés) ---------- */
+let TRIPS = [];
+let TRIP_DAYS = [];   // brouillon en cours d'édition
+let TRIP_EDIT_ID = null;
+
+function availableCodes(excludeTripId) {
+  const usedElsewhere = new Set();
+  for (const tr of TRIPS) {
+    if (tr.id === excludeTripId) continue;
+    for (const e of (tr.employees || [])) usedElsewhere.add(e.code);
+  }
+  return CODES.filter((c) => c.active && !usedElsewhere.has(c.code));
+}
+
+function fillTripSelects(sel1, sel2) {
+  const avail = availableCodes(TRIP_EDIT_ID);
+  const opt = (c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.label || c.code)}</option>`;
+  $("#trip-emp1").innerHTML = avail.map(opt).join("");
+  $("#trip-emp2").innerHTML = `<option value="">— Aucun —</option>` + avail.map(opt).join("");
+  if (sel1) $("#trip-emp1").value = sel1;
+  if (sel2) $("#trip-emp2").value = sel2;
+  // le coéquipier ne peut pas être l'employé principal
+  const sync = () => {
+    const v1 = $("#trip-emp1").value;
+    $("#trip-emp2").querySelectorAll("option").forEach((o) => {
+      o.disabled = !!o.value && o.value === v1;
+    });
+    if ($("#trip-emp2").value === v1) $("#trip-emp2").value = "";
+  };
+  $("#trip-emp1").onchange = sync;
+  sync();
+}
+
+async function loadTrips() {
+  const box = $("#trip-list");
+  try {
+    TRIPS = (await rpc("admin_list_trips", { p_admin: ADMIN })) || [];
+    if (!TRIPS.length) {
+      box.innerHTML = `<p class="hint-note">Aucun voyage. Créez-en un avec le bouton ci-dessous.</p>`;
+      return;
+    }
+    box.innerHTML = "";
+    TRIPS.forEach((tr, i) => {
+      const days = (tr.days || []).slice().sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      const range = days.length
+        ? `${new Date(days[0].date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" })} → ${new Date(days[days.length - 1].date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" })}`
+        : "sans dates";
+      const row = document.createElement("div");
+      row.className = "code-row";
+      row.innerHTML = `
+        <div class="code-main">
+          <strong style="letter-spacing:0">${escapeHtml(tr.title || "Voyage")}</strong>
+          <small>${(tr.employees || []).map((e) => escapeHtml(e.label || e.code)).join(" + ") || "—"} · ${days.length} jour(s) · ${range}</small>
+        </div>
+        <button class="btn-outline code-toggle">Modifier</button>
+        <button class="row-del" aria-label="Supprimer">&times;</button>`;
+      row.querySelector(".code-toggle").addEventListener("click", () => editTrip(i));
+      row.querySelector(".row-del").addEventListener("click", async () => {
+        if (!confirm(`Supprimer le voyage « ${tr.title} » ?`)) return;
+        const ok = await rpc("admin_delete_trip", { p_admin: ADMIN, p_id: tr.id });
+        toast(ok ? "Voyage supprimé" : "Action refusée");
+        loadTrips();
+      });
+      box.appendChild(row);
+    });
+  } catch {
+    box.innerHTML = `<p class="hint-note">Erreur de chargement.</p>`;
+  }
+}
+
+const EMPTY_DAY = () => ({
+  date: "",
+  hotel: { city: "", name: "", addr: "", tel: "", conf: "" },
+  event: { city: "", name: "", addr: "", tel: "", urg: "", contact: "" },
+});
+
+function renderTripDays() {
+  const box = $("#trip-days");
+  box.innerHTML = "";
+  TRIP_DAYS.forEach((d, i) => {
+    const det = document.createElement("details");
+    det.className = "guide-block";
+    det.open = !d.date;
+    det.innerHTML = `
+      <summary>${d.date ? new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" }) : "Nouveau jour"}</summary>
+      <div class="guide-body">
+        <label class="adm-label" style="margin-top:2px">Date :</label>
+        <input type="date" class="adm-input" data-i="${i}" data-f="date" value="${d.date || ""}">
+        <div class="carac-side-title" style="margin-top:10px">COUCHE (HÔTEL)</div>
+        <div class="tx-grid">
+          <input class="adm-input" data-i="${i}" data-g="hotel" data-f="city" placeholder="Ville" value="${escapeHtml(d.hotel.city)}">
+          <input class="adm-input" data-i="${i}" data-g="hotel" data-f="name" placeholder="Hôtel" value="${escapeHtml(d.hotel.name)}">
+          <input class="adm-input" data-i="${i}" data-g="hotel" data-f="addr" placeholder="Adresse" value="${escapeHtml(d.hotel.addr)}">
+          <div class="tx-grid-2col">
+            <input class="adm-input" data-i="${i}" data-g="hotel" data-f="tel" placeholder="Téléphone" value="${escapeHtml(d.hotel.tel)}">
+            <input class="adm-input" data-i="${i}" data-g="hotel" data-f="conf" placeholder="No confirmation" value="${escapeHtml(d.hotel.conf)}">
+          </div>
+        </div>
+        <div class="carac-side-title" style="margin-top:10px">JOURNÉE D'ACHAT (ÉVÉNEMENT)</div>
+        <div class="tx-grid">
+          <input class="adm-input" data-i="${i}" data-g="event" data-f="city" placeholder="Ville" value="${escapeHtml(d.event.city)}">
+          <input class="adm-input" data-i="${i}" data-g="event" data-f="name" placeholder="Lieu (ex. Royal Canadian Legion)" value="${escapeHtml(d.event.name)}">
+          <input class="adm-input" data-i="${i}" data-g="event" data-f="addr" placeholder="Adresse" value="${escapeHtml(d.event.addr)}">
+          <div class="tx-grid-2col">
+            <input class="adm-input" data-i="${i}" data-g="event" data-f="tel" placeholder="Téléphone" value="${escapeHtml(d.event.tel)}">
+            <input class="adm-input" data-i="${i}" data-g="event" data-f="urg" placeholder="Urgence (URG)" value="${escapeHtml(d.event.urg)}">
+          </div>
+          <input class="adm-input" data-i="${i}" data-g="event" data-f="contact" placeholder="Contact sur place" value="${escapeHtml(d.event.contact)}">
+        </div>
+        <button class="row-del trip-day-del" data-i="${i}" style="margin-top:6px" aria-label="Supprimer ce jour">&times; Supprimer ce jour</button>
+      </div>`;
+    det.querySelectorAll("input").forEach((inp) =>
+      inp.addEventListener("input", () => {
+        const t = TRIP_DAYS[+inp.dataset.i];
+        if (inp.dataset.g) t[inp.dataset.g][inp.dataset.f] = inp.value;
+        else t[inp.dataset.f] = inp.value;
+        if (inp.dataset.f === "date") {
+          det.querySelector("summary").textContent = inp.value
+            ? new Date(inp.value + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" })
+            : "Nouveau jour";
+        }
+      }));
+    det.querySelector(".trip-day-del").addEventListener("click", () => {
+      TRIP_DAYS.splice(i, 1);
+      renderTripDays();
+    });
+    box.appendChild(det);
+  });
+}
+
+function openTripForm() {
+  $("#trip-form").hidden = false;
+  $("#trip-new").hidden = true;
+  $("#trip-list").hidden = true;
+}
+
+function closeTripForm() {
+  $("#trip-form").hidden = true;
+  $("#trip-new").hidden = false;
+  $("#trip-list").hidden = false;
+  TRIP_EDIT_ID = null;
+  loadTrips();
+}
+
+function editTrip(i) {
+  const tr = TRIPS[i];
+  TRIP_EDIT_ID = tr.id;
+  $("#trip-title").value = tr.title || "";
+  TRIP_DAYS = JSON.parse(JSON.stringify(tr.days || []));
+  fillTripSelects(tr.employees?.[0]?.code || null, tr.employees?.[1]?.code || null);
+  renderTripDays();
+  openTripForm();
+}
+
+async function saveTrip() {
+  const title = $("#trip-title").value.trim();
+  const emp1 = $("#trip-emp1").value;
+  const emp2 = $("#trip-emp2").value;
+  if (!title) { toast("Nom du voyage requis"); return; }
+  if (!emp1) { toast("Choisissez au moins un employé"); return; }
+  if (!TRIP_DAYS.length || TRIP_DAYS.some((d) => !d.date)) {
+    toast("Chaque jour doit avoir une date");
+    return;
+  }
+  const ok = await rpc("admin_save_trip", {
+    p_admin: ADMIN, p_id: TRIP_EDIT_ID, p_title: title,
+    p_employees: emp2 ? [emp1, emp2] : [emp1],
+    p_days: TRIP_DAYS.slice().sort((a, b) => a.date.localeCompare(b.date)),
+  });
+  if (ok && ok.ok) {
+    toast("Voyage enregistré");
+    closeTripForm();
+  } else {
+    toast("Action refusée");
+  }
+}
+
 /* ---------- Système ---------- */
 async function loadStats() {
   const box = $("#adm-stats");
@@ -371,6 +551,20 @@ $("#tx-modal-close").addEventListener("click", () => { $("#tx-modal").hidden = t
 $("#tx-modal").addEventListener("click", (e) => {
   if (e.target.id === "tx-modal") $("#tx-modal").hidden = true;
 });
+$("#trip-new").addEventListener("click", () => {
+  TRIP_EDIT_ID = null;
+  $("#trip-title").value = "";
+  TRIP_DAYS = [EMPTY_DAY()];
+  fillTripSelects(null, null);
+  renderTripDays();
+  openTripForm();
+});
+$("#trip-add-day").addEventListener("click", () => {
+  TRIP_DAYS.push(EMPTY_DAY());
+  renderTripDays();
+});
+$("#trip-save").addEventListener("click", saveTrip);
+$("#trip-cancel").addEventListener("click", closeTripForm);
 $("#adm-logout").addEventListener("click", () => {
   sessionStorage.removeItem("roadminer_admin");
   ADMIN = "";

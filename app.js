@@ -1369,6 +1369,83 @@ function resetTx() {
   renderTxPhotos();
 }
 
+/* ---------- Voyage (employé) ---------- */
+const mapsUrl = (addr) =>
+  "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(addr);
+const telUrl = (tel) => "tel:" + (tel || "").replace(/[^0-9+]/g, "");
+
+function tripDayCard(d, isToday) {
+  const dateStr = new Date(d.date + "T12:00:00")
+    .toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
+  const block = (title, icon, o, conf) => {
+    if (!o || !(o.name || o.city || o.addr)) return "";
+    return `
+      <div class="trip-block">
+        <div class="carac-side-title">${icon} ${title}${o.city ? " — " + escapeHtml(o.city) : ""}</div>
+        ${o.name ? `<div class="trip-name">${escapeHtml(o.name)}</div>` : ""}
+        ${o.addr ? `<a class="btn-outline trip-map" href="${mapsUrl(o.addr)}" target="_blank" rel="noopener">&#128205; ${escapeHtml(o.addr)} — Itinéraire &nearr;</a>` : ""}
+        <div class="trip-meta">
+          ${o.tel ? `<a href="${telUrl(o.tel)}">&#128222; ${escapeHtml(o.tel)}</a>` : ""}
+          ${o.urg ? `<a href="${telUrl(o.urg)}">URG ${escapeHtml(o.urg)}</a>` : ""}
+          ${o.contact ? `<span>Contact : ${escapeHtml(o.contact)}</span>` : ""}
+          ${conf && o.conf ? `<span>Conf : ${escapeHtml(o.conf)}</span>` : ""}
+        </div>
+      </div>`;
+  };
+  return `
+    <div class="trip-day${isToday ? " trip-today" : ""}">
+      ${isToday ? '<div class="verdict" style="margin-bottom:8px">AUJOURD\'HUI</div>' : ""}
+      <div class="trip-date">${dateStr}</div>
+      ${block("COUCHE", "&#127976;", d.hotel, true)}
+      ${block("JOURNÉE D'ACHAT", "&#128184;", d.event, false)}
+    </div>`;
+}
+
+async function loadMyTrips() {
+  const content = $("#trip-content");
+  const loginBox = $("#trip-login");
+  let code = "";
+  try { code = localStorage.getItem("roadminer_access") || ""; } catch {}
+  if (!code) {
+    loginBox.hidden = false;
+    content.innerHTML = "";
+    return;
+  }
+  loginBox.hidden = true;
+  content.innerHTML = `<p class="hint-note">Chargement de votre voyage…</p>`;
+  let trips = [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_trip`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json" },
+      body: JSON.stringify({ p_code: code }),
+    });
+    trips = await res.json();
+  } catch {}
+  if (!Array.isArray(trips) || !trips.length) {
+    content.innerHTML = `<div class="detail-card"><p class="hint-note" style="margin:0">Aucun voyage assigné à ce code pour l'instant.</p></div>`;
+    return;
+  }
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  content.innerHTML = trips.map((tr) => {
+    const others = (tr.employees || []).filter((e) => e.code !== code.toUpperCase());
+    const days = (tr.days || []).slice().sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    // le jour courant toujours en premier, puis à venir, puis passés
+    const todayDays = days.filter((d) => d.date === todayStr);
+    const future = days.filter((d) => d.date > todayStr);
+    const past = days.filter((d) => d.date < todayStr);
+    const ordered = [...todayDays, ...future, ...past];
+    return `
+      <div class="detail-card" style="margin-bottom:16px">
+        <h2 style="font-size:17px">${escapeHtml(tr.title || "Voyage")}</h2>
+        ${others.length ? `<p class="detail-ref">Avec : ${others.map((e) => escapeHtml(e.label || e.code)).join(" + ")}</p>` : ""}
+        ${ordered.map((d) => tripDayCard(d, d.date === todayStr)).join("")}
+      </div>`;
+  }).join("");
+}
+
 /* ---------- Historique ---------- */
 const HIST_KEY = "roadminer_history";
 
@@ -1432,6 +1509,7 @@ function showView(id) {
   document.querySelectorAll(".nav-btn").forEach((b) =>
     b.classList.toggle("active", b.dataset.view === id));
   if (id === "view-history") renderHistory();
+  if (id === "view-trip") loadMyTrips();
 }
 
 /* ---------- Événements ---------- */
@@ -1531,6 +1609,21 @@ function bindEvents() {
   $("#agc-to-tx").addEventListener("click", sendAgcToTx);
   $("#face-to-tx").addEventListener("click", sendFaceToTx);
   $("#btn-add-tx").addEventListener("click", addDetailToTx);
+
+  // voyage employé
+  $("#trip-code-btn").addEventListener("click", async () => {
+    const code = $("#trip-code").value.trim();
+    if (!code) return;
+    try {
+      const role = await verifyAccessCode(code);
+      if (role === "denied") { toast("Code invalide ou révoqué"); return; }
+      localStorage.setItem("roadminer_access", code);
+      loadMyTrips();
+    } catch { toast("Connexion impossible — réessayez"); }
+  });
+  $("#trip-code").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") $("#trip-code-btn").click();
+  });
 
   $("#btn-clear-history").addEventListener("click", () => {
     if (confirm("Vider tout l'historique ?")) {

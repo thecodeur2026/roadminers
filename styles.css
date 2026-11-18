@@ -1005,6 +1005,31 @@ body {
 .tx-row-link:hover { background: rgba(212,175,55,.06); }
 [data-theme="light"] .tx-stat { background: #fff; border-color: #e0d8c4; }
 
+/* ----- Voyage (employé) ----- */
+.trip-day {
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+  background: var(--bg-raised);
+}
+.trip-today { border-color: var(--gold); background: rgba(212,175,55,.07); }
+.trip-date {
+  font-weight: 800; font-size: 14px; color: var(--text);
+  text-transform: capitalize; margin-bottom: 8px;
+}
+.trip-block { border-top: 1px solid #2c2c2c; padding: 8px 0; }
+.trip-block:first-of-type { border-top: none; padding-top: 0; }
+.trip-name { font-weight: 700; font-size: 13.5px; margin-bottom: 6px; }
+.trip-map {
+  display: block; font-size: 12px; padding: 9px 12px;
+  margin: 6px 0; text-align: left; text-decoration: none;
+}
+.trip-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--text-dim); }
+.trip-meta a { color: var(--gold-light); text-decoration: none; font-weight: 700; }
+[data-theme="light"] .trip-day { background: #fff; border-color: #e0d8c4; }
+[data-theme="light"] .trip-block { border-top-color: #ece5d2; }
+
 /* ----- Toast ----- */
 .toast {
   position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);

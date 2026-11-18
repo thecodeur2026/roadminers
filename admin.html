@@ -40,6 +40,7 @@
         <button class="adm-tab-btn active" data-tab="tab-statut">Statut</button>
         <button class="adm-tab-btn" data-tab="tab-codes">Codes d'accès</button>
         <button class="adm-tab-btn" data-tab="tab-achats">Achats</button>
+        <button class="adm-tab-btn" data-tab="tab-voyages">Voyages</button>
         <button class="adm-tab-btn" data-tab="tab-systeme">Système</button>
       </div>
 
@@ -85,6 +86,30 @@
       <div class="detail-card">
         <div id="adm-tx"><p class="hint-note">Chargement…</p></div>
         <button class="btn-outline" id="adm-tx-export" style="width:100%;margin-top:12px">&#11015; Exporter le registre (CSV)</button>
+      </div>
+      </div>
+
+      <div class="adm-tab" id="tab-voyages">
+      <div id="trip-list"><p class="hint-note">Chargement…</p></div>
+      <button class="btn-gold" id="trip-new" style="width:100%;margin-top:10px">&#10010; Nouveau voyage</button>
+
+      <div id="trip-form" hidden>
+        <div class="detail-card" style="margin-top:14px">
+          <input id="trip-title" class="adm-input" placeholder="Nom du voyage (ex. Journée d'achat — Alberta)">
+          <label class="adm-label" for="trip-emp1">Employé :</label>
+          <select id="trip-emp1" class="adm-input"></select>
+          <label class="adm-label" for="trip-emp2">Coéquipier (optionnel — il disparaît des employés disponibles ailleurs) :</label>
+          <select id="trip-emp2" class="adm-input"></select>
+
+          <h3 class="section-title">Jours — couche &amp; journée d'achat</h3>
+          <div id="trip-days"></div>
+          <button class="btn-outline" id="trip-add-day" style="width:100%">&#10010; Ajouter un jour</button>
+
+          <div class="adm-btn-row">
+            <button class="btn-gold" id="trip-save" style="flex:1">Enregistrer le voyage</button>
+            <button class="btn-outline" id="trip-cancel" style="flex:1">Annuler</button>
+          </div>
+        </div>
       </div>
       </div>
 
