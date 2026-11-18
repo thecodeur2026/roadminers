@@ -912,6 +912,7 @@ body {
 }
 [data-theme="light"] .adm-input { background: #fff; border-color: #ddd3ba; color: #1a1a1a; }
 [data-theme="light"] .code-row { border-bottom-color: #ece5d2; }
+[data-theme="light"] .carac-row { border-bottom-color: #ece5d2; }
 
 /* ----- Transaction (achat comptoir) ----- */
 .tx-grid { display: flex; flex-direction: column; gap: 8px; }

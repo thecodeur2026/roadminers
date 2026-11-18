@@ -217,7 +217,27 @@ async function loadStats() {
   ).join("");
 }
 
+/* ---------- Thème clair / sombre (partagé avec l'app) ---------- */
+function initTheme() {
+  const btn = $("#btn-theme");
+  const apply = (t) => {
+    document.documentElement.dataset.theme = t;
+    btn.textContent = t === "light" ? "☾" : "☀";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = t === "light" ? "#f6f3ea" : "#0a0a0a";
+  };
+  let t = "dark";
+  try { t = localStorage.getItem("roadminer_theme") || "dark"; } catch {}
+  apply(t);
+  btn.addEventListener("click", () => {
+    t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    try { localStorage.setItem("roadminer_theme", t); } catch {}
+    apply(t);
+  });
+}
+
 /* ---------- Init ---------- */
+initTheme();
 $("#adm-login-btn").addEventListener("click", login);
 $("#adm-code").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
 $("#adm-toggle").addEventListener("click", () => {
