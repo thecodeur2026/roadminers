@@ -85,6 +85,22 @@ grant execute on function admin_list_trips(text) to anon;
 grant execute on function admin_delete_trip(text, uuid) to anon;
 grant execute on function get_my_trip(text) to anon;
 
+-- tous les voyages (tout employé avec code actif) — pour voir les autres équipes
+create or replace function get_all_trips(p_code text)
+returns json language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from access_codes
+                 where code = upper(trim(p_code)) and active) then
+    return '[]'::json;
+  end if;
+  return (select coalesce(json_agg(row_to_json(t)), '[]'::json) from (
+    select tr.id, tr.title, tr.days,
+           (select coalesce(json_agg(json_build_object('code', c.code, 'label', c.label)), '[]'::json)
+              from access_codes c where c.code = any(tr.employees)) as employees
+      from trips tr order by tr.created_at desc) t);
+end $$;
+grant execute on function get_all_trips(text) to anon;
+
 -- ===== Données de démonstration (tournée de l'image : Luc / Karim, Alberta) =====
 insert into access_codes (code, label, role)
 values ('LUC-2026', 'Luc Loupien', 'guest'), ('KARIM-2026', 'Karim', 'guest')

@@ -336,23 +336,30 @@ async function loadTrips() {
       const range = days.length
         ? `${new Date(days[0].date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" })} → ${new Date(days[days.length - 1].date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" })}`
         : "sans dates";
-      const row = document.createElement("div");
-      row.className = "code-row";
-      row.innerHTML = `
-        <div class="code-main">
-          <strong style="letter-spacing:0">${escapeHtml(tr.title || "Voyage")}</strong>
-          <small>${(tr.employees || []).map((e) => escapeHtml(e.label || e.code)).join(" + ") || "—"} · ${days.length} jour(s) · ${range}</small>
-        </div>
-        <button class="btn-outline code-toggle">Modifier</button>
-        <button class="row-del" aria-label="Supprimer">&times;</button>`;
-      row.querySelector(".code-toggle").addEventListener("click", () => editTrip(i));
-      row.querySelector(".row-del").addEventListener("click", async () => {
+      const det = document.createElement("details");
+      det.className = "guide-block";
+      det.innerHTML = `
+        <summary>${escapeHtml(tr.title || "Voyage")}</summary>
+        <div class="guide-body">
+          <p><strong>Équipe :</strong> ${(tr.employees || []).map((e) => escapeHtml(e.label || e.code)).join(" + ") || "—"} · ${days.length} jour(s) · ${range}</p>
+          ${days.map((d) => `
+            <div class="trip-dayline">
+              <strong>${new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "short", day: "numeric", month: "short" })}</strong>
+              — ${escapeHtml((d.hotel && d.hotel.city) || "—")}${d.event && d.event.city ? " → " + escapeHtml(d.event.city) : ""}
+            </div>`).join("")}
+          <div class="adm-btn-row">
+            <button class="btn-outline code-toggle" style="flex:1">Modifier l'itinéraire</button>
+            <button class="row-del" aria-label="Supprimer">&times;</button>
+          </div>
+        </div>`;
+      det.querySelector(".code-toggle").addEventListener("click", () => editTrip(i));
+      det.querySelector(".row-del").addEventListener("click", async () => {
         if (!confirm(`Supprimer le voyage « ${tr.title} » ?`)) return;
         const ok = await rpc("admin_delete_trip", { p_admin: ADMIN, p_id: tr.id });
         toast(ok ? "Voyage supprimé" : "Action refusée");
         loadTrips();
       });
-      box.appendChild(row);
+      box.appendChild(det);
     });
   } catch {
     box.innerHTML = `<p class="hint-note">Erreur de chargement.</p>`;
@@ -369,6 +376,9 @@ function renderTripDays() {
   const box = $("#trip-days");
   box.innerHTML = "";
   TRIP_DAYS.forEach((d, i) => {
+    // tolère les jours sans hôtel ou sans événement (ex. null dans les données)
+    d.hotel = d.hotel || EMPTY_DAY().hotel;
+    d.event = d.event || EMPTY_DAY().event;
     const det = document.createElement("details");
     det.className = "guide-block";
     det.open = !d.date;

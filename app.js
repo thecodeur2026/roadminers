@@ -1511,13 +1511,67 @@ function tripDayCard(d, isToday) {
         </div>
       </div>`;
   };
+  const where = (d.event && d.event.city) || (d.hotel && d.hotel.city) || "";
   return `
-    <div class="trip-day${isToday ? " trip-today" : ""}">
-      ${isToday ? '<div class="verdict" style="margin-bottom:8px">AUJOURD\'HUI</div>' : ""}
-      <div class="trip-date">${dateStr}</div>
+    <details class="trip-day${isToday ? " trip-today" : ""}"${isToday ? " open" : ""}>
+      <summary>${isToday ? '<span class="verdict" style="margin-right:8px">AUJOURD\'HUI</span>' : ""}<span class="trip-date">${dateStr}</span>${where ? ` <small>— ${escapeHtml(where)}</small>` : ""}</summary>
       ${block("COUCHE", "&#127976;", d.hotel, true)}
       ${block("JOURNÉE D'ACHAT", "&#128184;", d.event, false)}
-    </div>`;
+    </details>`;
+}
+
+/* distance entre deux points GPS (km, à vol d'oiseau) */
+function haversineKm(a, b) {
+  const R = 6371, rad = (x) => (x * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+async function geocodeAddr(addr) {
+  let cache = {};
+  try { cache = JSON.parse(localStorage.getItem("roadminer_geo")) || {}; } catch {}
+  if (cache[addr]) return cache[addr];
+  try {
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(addr));
+    const d = await r.json();
+    if (d && d[0]) {
+      cache[addr] = { lat: +d[0].lat, lon: +d[0].lon };
+      try { localStorage.setItem("roadminer_geo", JSON.stringify(cache)); } catch {}
+      return cache[addr];
+    }
+  } catch {}
+  return null;
+}
+
+function getMyPosition(cb) {
+  if (!navigator.geolocation) return cb(null);
+  navigator.geolocation.getCurrentPosition(
+    (p) => cb({ lat: p.coords.latitude, lon: p.coords.longitude }),
+    () => cb(null),
+    { timeout: 8000 });
+}
+
+async function fillDistances() {
+  const els = document.querySelectorAll(".trip-dist[data-addr]");
+  if (!els.length) return;
+  getMyPosition(async (pos) => {
+    for (const el of els) {
+      if (!pos) { el.textContent = "distance : activez la géolocalisation"; continue; }
+      el.textContent = "calcul de la distance…";
+      const g = await geocodeAddr(el.dataset.addr);
+      el.textContent = g ? `~${Math.round(haversineKm(pos, g))} km de vous` : "distance inconnue";
+      await new Promise((r) => setTimeout(r, 1100)); // limite Nominatim
+    }
+  });
+}
+
+/* lieu d'une équipe aujourd'hui (événement sinon hôtel) */
+function todayLoc(tr, todayStr) {
+  const d = (tr.days || []).find((x) => x.date === todayStr);
+  if (!d) return null;
+  const o = (d.event && (d.event.addr || d.event.city)) ? d.event : d.hotel;
+  return o ? { city: o.city || "", addr: o.addr || o.city || "" } : null;
 }
 
 async function loadMyTrips() {
@@ -1531,10 +1585,10 @@ async function loadMyTrips() {
     return;
   }
   loginBox.hidden = true;
-  content.innerHTML = `<p class="hint-note">Chargement de votre voyage…</p>`;
+  content.innerHTML = `<p class="hint-note">Chargement des voyages…</p>`;
   let trips = [];
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_trip`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_trips`, {
       method: "POST",
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
         "Content-Type": "application/json" },
@@ -1543,26 +1597,55 @@ async function loadMyTrips() {
     trips = await res.json();
   } catch {}
   if (!Array.isArray(trips) || !trips.length) {
-    content.innerHTML = `<div class="detail-card"><p class="hint-note" style="margin:0">Aucun voyage assigné à ce code pour l'instant.</p></div>`;
+    content.innerHTML = `<div class="detail-card"><p class="hint-note" style="margin:0">Aucun voyage pour l'instant.</p></div>`;
     return;
   }
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  content.innerHTML = trips.map((tr) => {
-    const others = (tr.employees || []).filter((e) => e.code !== code.toUpperCase());
+  const mine = trips.filter((t) => (t.employees || []).some((e) => e.code === code.toUpperCase()));
+  const others = trips.filter((t) => !(t.employees || []).some((e) => e.code === code.toUpperCase()));
+
+  const renderDays = (tr) => {
     const days = (tr.days || []).slice().sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-    // le jour courant toujours en premier, puis à venir, puis passés
     const todayDays = days.filter((d) => d.date === todayStr);
     const future = days.filter((d) => d.date > todayStr);
     const past = days.filter((d) => d.date < todayStr);
-    const ordered = [...todayDays, ...future, ...past];
+    return [...todayDays, ...future, ...past].map((d) => tripDayCard(d, d.date === todayStr)).join("");
+  };
+
+  let html = mine.map((tr) => {
+    const others_ = (tr.employees || []).filter((e) => e.code !== code.toUpperCase());
     return `
-      <div class="detail-card" style="margin-bottom:16px">
-        <h2 style="font-size:17px">${escapeHtml(tr.title || "Voyage")}</h2>
-        ${others.length ? `<p class="detail-ref">Avec : ${others.map((e) => escapeHtml(e.label || e.code)).join(" + ")}</p>` : ""}
-        ${ordered.map((d) => tripDayCard(d, d.date === todayStr)).join("")}
-      </div>`;
+      <details class="guide-block" open>
+        <summary>${escapeHtml(tr.title || "Mon voyage")}</summary>
+        <div class="guide-body">
+          ${others_.length ? `<p style="margin-top:0">Avec : <strong>${others_.map((e) => escapeHtml(e.label || e.code)).join(" + ")}</strong></p>` : ""}
+          ${renderDays(tr)}
+        </div>
+      </details>`;
   }).join("");
+
+  if (others.length) {
+    html += `<h3 class="section-title">Autres équipes en tournée</h3>` + others.map((tr) => {
+      const emps = (tr.employees || []).map((e) => e.label || e.code).join(" + ");
+      const loc = todayLoc(tr, todayStr);
+      return `
+        <details class="guide-block">
+          <summary>${escapeHtml(tr.title || "Voyage")}</summary>
+          <div class="guide-body">
+            <p style="margin-top:0">Équipe : <strong>${escapeHtml(emps || "—")}</strong></p>
+            ${loc ? `
+              <p>Aujourd'hui : <strong>${escapeHtml(loc.city)}</strong><br>
+              <span class="trip-dist" data-addr="${escapeHtml(loc.addr)}" style="color:var(--gold);font-weight:800"></span></p>
+              <a class="btn-outline trip-map" href="${mapsUrl(loc.addr)}" target="_blank" rel="noopener">&#128205; Itinéraire vers eux &nearr;</a>`
+            : `<p class="hint-note" style="margin:0">Pas d'événement aujourd'hui.</p>`}
+            <div style="margin-top:10px">${renderDays(tr)}</div>
+          </div>
+        </details>`;
+    }).join("");
+  }
+  content.innerHTML = html;
+  fillDistances();
 }
 
 /* ---------- Historique ---------- */

@@ -60,15 +60,17 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   détail complet d'une transaction (photos incluses) et export CSV du
   registre (`admin_list_transactions` inclut client+items,
   `admin_get_transaction` pour le détail).
-- Onglet « Voyage » (employé, dans l'app) : voit son/ses voyages après code
-  d'accès (RPC `get_my_trip`) ; le jour courant toujours en premier avec
-  badge AUJOURD'HUI ; chaque jour = COUCHE (hôtel, adresse, tél, conf) +
-  JOURNÉE D'ACHAT (lieu, adresse, tél/URG, contact), adresses cliquables →
-  itinéraire Google Maps. Admin : onglet « Voyages » pour créer/modifier
-  (employé + coéquipier — un employé assigné disparaît des listes des autres
-  voyages). Table `trips` (illisible publiquement), RPC admin_save/list/
-  delete_trip. Schéma + démo Alberta (Luc/Karim, codes LUC-2026 /
-  KARIM-2026) : `supabase/trips.sql` (exécuté).
+- Onglet « Voyage » (employé, dans l'app) : code d'accès → son voyage +
+  **autres équipes en tournée** (RPC `get_all_trips`) avec leur position du
+  jour et la **distance** depuis ma position (géoloc + Nominatim, cache
+  localStorage `roadminer_geo`) ; jours en dépliants, le jour courant ouvert
+  en premier avec badge AUJOURD'HUI ; chaque jour = COUCHE (hôtel, adresse,
+  tél, conf) + JOURNÉE D'ACHAT (lieu, adresse, tél/URG, contact), adresses
+  cliquables → itinéraire Google Maps. Admin : onglet « Voyages » en
+  dépliants, bouton « Modifier l'itinéraire » (employé + coéquipier — un
+  employé assigné disparaît des listes des autres voyages). Table `trips`
+  (illisible publiquement), RPC admin_save/list/delete_trip. Schéma + démo
+  Alberta (Luc/Karim, codes LUC-2026 / KARIM-2026) : `supabase/trips.sql`.
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
 
