@@ -1625,8 +1625,11 @@ async function loadMyTrips() {
       </details>`;
   }).join("");
 
-  if (others.length) {
-    html += `<h3 class="section-title">Autres équipes en tournée</h3>` + others.map((tr) => {
+  html += `<h3 class="section-title">Autres équipes en tournée</h3>`;
+  if (!others.length) {
+    html += `<div class="detail-card"><p class="hint-note" style="margin:0">Aucune autre équipe en tournée pour l'instant.</p></div>`;
+  } else {
+    html += others.map((tr) => {
       const emps = (tr.employees || []).map((e) => e.label || e.code).join(" + ");
       const loc = todayLoc(tr, todayStr);
       return `
