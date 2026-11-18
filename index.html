@@ -107,8 +107,12 @@
       <details class="guide-block home-fold">
         <summary>Calculateur argent — lots de pièces</summary>
       <div class="agc-card">
-        <div class="agc-head"><span>PIÈCE</span><span>QTÉ</span><span>100 %</span></div>
+        <div class="agc-head"><span>PIÈCE</span><span>QTÉ</span><span>VALEUR</span></div>
         <div id="agc-rows"></div>
+        <div class="custom-pct-row" style="margin-top:10px">
+          <label for="agc-pct" style="font-size:12px;font-weight:700;color:var(--text-dim)">Offre :</label>
+          <select id="agc-pct" class="adm-input" style="max-width:120px;width:auto"></select>
+        </div>
         <p class="melt-result" id="agc-result">Total : —</p>
         <div class="custom-pct-row" id="agc-paid-row" hidden>
           <input type="number" id="agc-paid" min="0" step="0.01" placeholder="montant payé au total">

@@ -29,7 +29,8 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   avec multiplicateur (ex. « 8 fois la face » → prix) — page d'accueil
 - Calculateur argent « lots de pièces » : quantité par type (50 ¢ CAN/US,
   25 ¢ 1967/1968 à 50 %, dollars commémoratifs, olympiques, Kennedy 40 %...)
-  → valeur 100 % Kitco, 8 paliers et % réel du montant payé (app.js AGC_TYPES)
+  → offre au % choisi (8 paliers, persistée), paliers sur la base 100 % Kitco
+  et % réel du montant payé (app.js AGC_TYPES)
 - Onglet « Guide » : manuel de formation (or/argent/platine, argenterie,
   monnaie canadienne et américaine, montres, billets, cartes, sécurité,
   fiche d'évaluation) en sections dépliables — contenu statique dans index.html

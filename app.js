@@ -660,6 +660,7 @@ const AGC_TYPES = [
   { label: "50 ¢ Kennedy 1965–1969", fineness: "40 %", g: 11.5, fine: 0.4, mat: "0.4000 US Silver Coin \"Kennedy Half Dollar\" (1965-1970)" },
 ];
 let agcQty = {}; // index → quantité
+let agcPct = 100; // offre en % du 100 % Kitco (persistée)
 
 function agcPricePerG(t) {
   if (SPOT && SPOT.materials) {
@@ -696,21 +697,37 @@ function renderAgcRows() {
     try { localStorage.setItem("roadminer_agcpaid", paidInp.value); } catch {}
     updateAgc();
   });
+  // sélecteur d'offre en % (paliers)
+  const pctSel = $("#agc-pct");
+  try {
+    const saved = localStorage.getItem("roadminer_agcpct");
+    if (saved) agcPct = +saved || 100;
+  } catch {}
+  pctSel.innerHTML = pctOptions(agcPct);
+  pctSel.addEventListener("change", () => {
+    agcPct = +pctSel.value;
+    try { localStorage.setItem("roadminer_agcpct", pctSel.value); } catch {}
+    updateAgc();
+  });
 }
 
 function updateAgc() {
-  let total = 0;
+  let total = 0, total100 = 0;
   AGC_TYPES.forEach((t, i) => {
     const qty = parseFloat(agcQty[i]) || 0;
-    const val = qty * t.g * agcPricePerG(t);
+    const val100 = qty * t.g * agcPricePerG(t);
+    const val = val100 * agcPct / 100;
     const sub = $("#agc-sub-" + i);
-    if (sub) sub.textContent = val > 0 ? fmt(val) : "—";
+    if (sub) sub.innerHTML = val > 0
+      ? `${fmt(val)}${agcPct !== 100 ? `<small style="display:block;font-weight:600;color:var(--text-dim)">${fmt(val100)} à 100 %</small>` : ""}`
+      : "—";
     total += val;
+    total100 += val100;
   });
   const res = $("#agc-result");
   if (!res) return;
   res.innerHTML = total > 0
-    ? `<span class="melt-total-label">VALEUR DU LOT À 100 % KITCO</span> <strong class="melt-total">${fmt(total)}</strong>`
+    ? `<span class="melt-total-label">VALEUR DU LOT À ${agcPct} % (offre)</span> <strong class="melt-total">${fmt(total)}</strong><br><span class="hint-note">Référence 100 % Kitco : ${fmt(total100)}</span>`
     : `Entrez la quantité de chaque type de pièce.`;
   const tiers = $("#agc-tiers");
   if (tiers) {
@@ -718,8 +735,8 @@ function updateAgc() {
     if (total > 0) {
       for (const p of PERCENTS) {
         const div = document.createElement("div");
-        div.className = "tier" + (p === 100 ? " full" : "");
-        div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total * p / 100)}</span>`;
+        div.className = "tier" + (p === agcPct ? " full" : "");
+        div.innerHTML = `<span class="pct">${p} %</span><span class="val">${fmt(total100 * p / 100)}</span>`;
         tiers.appendChild(div);
       }
     }
@@ -732,8 +749,8 @@ function updateAgc() {
   const paidOut = $("#agc-paid-pct");
   if (paidInp && paidOut) {
     const v = parseFloat(paidInp.value);
-    paidOut.textContent = (!isNaN(v) && v > 0 && total > 0)
-      ? `= ${(v / total * 100).toFixed(1)} %`
+    paidOut.textContent = (!isNaN(v) && v > 0 && total100 > 0)
+      ? `= ${(v / total100 * 100).toFixed(1)} %`
       : "—";
   }
 }
@@ -1198,9 +1215,9 @@ function sendAgcToTx() {
   let n = 0;
   AGC_TYPES.forEach((t, i) => {
     const qty = parseFloat(agcQty[i]) || 0;
-    const val = qty * t.g * agcPricePerG(t);
+    const val = qty * t.g * agcPricePerG(t) * agcPct / 100;
     if (val > 0) {
-      addTxItem(`${qty} × ${t.label} (${t.fineness})`, "PIÈCES EN ARGENT", Math.round(val * 100) / 100);
+      addTxItem(`${qty} × ${t.label} (${t.fineness}) × ${agcPct} %`, "PIÈCES EN ARGENT", Math.round(val * 100) / 100);
       n++;
     }
   });
