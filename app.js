@@ -647,6 +647,8 @@ const AGC_TYPES = [
   { label: "25 ¢ canadien (1966 et avant)", fineness: "80 %", g: 5.83, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
   { label: "50 ¢ canadien (1966 et avant)", fineness: "80 %", g: 11.66, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
   { label: "1 $ canadien argent (1967 et avant)", fineness: "80 %", g: 23.33, fine: 0.8, mat: "0.8000 Canadian Silver Coin (1966 or earlier)" },
+  { label: "25 ¢ canadien 1967 (50 %)", fineness: "50 %", g: 5.83, fine: 0.5, mat: "0.5000 Canadian Silver Coin (1968)" },
+  { label: "25 ¢ canadien 1968 (50 %)", fineness: "50 %", g: 5.83, fine: 0.5, mat: "0.5000 Canadian Silver Coin (1968)" },
   { label: "Dollar commémoratif 1971–1991", fineness: "50 %", g: 23.33, fine: 0.5, mat: "0.5000 Canadian Silver Coin (1968)" },
   { label: "Dollar commémoratif 1992–2002", fineness: "92,5 %", g: 25.175, fine: 0.925, mat: "Sterling Metallic" },
   { label: "Olympique 5 $ Montréal", fineness: "92,5 %", g: 24.3, fine: 0.925, mat: "Sterling Metallic" },
