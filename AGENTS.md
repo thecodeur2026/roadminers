@@ -27,10 +27,16 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   pièces (saisir le prix payé affiche le % du 100 % Kitco que ça représente)
 - Calculateur de valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale,
   avec multiplicateur (ex. « 8 fois la face » → prix) — page d'accueil
-- Calculateur argent « lots de pièces » : quantité par type (50 ¢ CAN/US,
-  25 ¢ 1967/1968 à 50 %, dollars commémoratifs, olympiques, Kennedy 40 %...)
-  → offre au % choisi (8 paliers, persistée), paliers sur la base 100 % Kitco
-  et % réel du montant payé (app.js AGC_TYPES)
+- Calculateur argent « lots de pièces » (résumé : pièces d'or et d'argent) :
+  quantité par type (50 ¢ CAN/US, 25 ¢ 1967/1968 à 50 %, dollars
+  commémoratifs, olympiques Montréal/Calgary, Kennedy 40 %, pièces d'or
+  14K/22K/90 %/Maple Leaf...) → offre au % choisi (8 paliers, persistée),
+  paliers sur la base 100 % Kitco et % réel du montant payé (app.js AGC_TYPES)
+- Valeur métal dans la fiche pièce : les tables « GOLD/SILVER CONTENT » du
+  guide sont parsées au chargement (`buildContentTables`/`meltInfo`) ; si la
+  pièce y figure, la fiche montre la valeur de fonte au cours du jour à côté
+  du prix du livre, avec badge rouge « LA FONTE PAIE PLUS QUE LE LIVRE »
+  quand la fonte dépasse le prix du guide
 - Onglet « Guide » : manuel de formation (or/argent/platine, argenterie,
   monnaie canadienne et américaine, montres, billets, cartes, sécurité,
   fiche d'évaluation) en sections dépliables — contenu statique dans index.html

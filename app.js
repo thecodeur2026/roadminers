@@ -118,6 +118,7 @@ async function loadData() {
       e._id = i;
       e._text = entryText(e);
     });
+    buildContentTables();
   } catch (err) {
     console.error("Données non chargées", err);
     DB = { entries: [], notes: [] };
@@ -315,6 +316,92 @@ function initCoinDrag() {
   })();
 }
 
+/* ---------- Valeur métal d'une pièce (tables de teneurs du guide) ---------- */
+let CONTENT_ROWS = { gold: [], silver: [] };
+
+/* parse les sections « GOLD/SILVER CONTENT OF CANADIAN COINS » du guide */
+function buildContentTables() {
+  CONTENT_ROWS = { gold: [], silver: [] };
+  for (const e of DB.entries) {
+    const cat = e.category || "";
+    let metal = null;
+    if (cat === "GOLD CONTENT OF CANADIAN GOLD COINS") metal = "gold";
+    else if (cat === "SILVER CONTENT OF CANADIAN SILVER COINS") metal = "silver";
+    else continue;
+    const d = e.description || "";
+    const denom = ((d.match(/Denom\.?:\s*([^;]+)/) || [])[1] || "").trim();
+    const grams = parseFloat((d.match(/(?:Pure Gold|Silver) Content Grams:\s*([\d.]+)/) || [])[1]);
+    if (!denom || isNaN(grams)) continue;
+    const years = (e.date || "").match(/\d{4}/g) || [];
+    const from = years.length ? +years[0] : 0;
+    const to = /to date/i.test(e.date || "") ? 2100 : (years[1] ? +years[1] : from);
+    CONTENT_ROWS[metal].push({ denom, from, to, grams, proof: /proof/i.test(e.date || "") });
+  }
+}
+
+function denomKey(s) {
+  s = (s || "").trim();
+  let m = s.match(/^\$\s*(\d[\d,]*)/);
+  if (m) return "$" + m[1].replace(/,/g, "");
+  m = s.match(/^(\d+)\s*cents?/i);
+  if (m) return m[1] + "c";
+  if (/sov/i.test(s)) return "sov";
+  return s;
+}
+
+/* dénomination d'une entrée depuis sa catégorie/série */
+function entryDenomKey(e) {
+  const c = (e.category || "").toUpperCase();
+  const s = (e.series || "").toUpperCase();
+  if (/SOVEREIGN/.test(c + " " + s)) return "sov";
+  let m = c.match(/(\d[\d ]*)\s*DOLLARS?/);            // "100 DOLLAR GOLD…", "GOLD 5 DOLLARS"
+  if (m) return "$" + m[1].replace(/ /g, "");
+  if (c.includes("TWENTY-FIVE CENTS") || c.includes("QUARTER")) return "25c";
+  if (c.includes("FIFTY CENTS") || c.includes("HALF DOLLARS")) return "50c";
+  if (c.includes("TEN CENTS") || c === "DIMES") return "10c";
+  if (c.includes("FIVE CENTS SILVER") || c.includes("HALF DIMES")) return "5c";
+  if (c.includes("TWO DOLLARS GOLD")) return "$2n";
+  if (c.includes("SILVER DOLLARS") || c.includes("GOLD DOLLARS")) return "$1";
+  m = c.match(/(\d+)\s*CENTS?/);                        // "25 CENT GOLD…", "50 CENT GOLD…"
+  if (m) return m[1] + "c";
+  if (c.includes("ONE CENT GOLD")) return "1c";
+  return null;
+}
+
+/* teneur en métal pur d'une pièce du guide, selon année et variante */
+function meltInfo(e) {
+  if (!e || e.source !== "guide") return null;
+  const catUp = (e.category || "").toUpperCase();
+  const isMetalCat = catUp.includes("GOLD") || catUp.includes("SILVER");
+  // hors catégories GOLD/SILVER (circulation) : Canada seulement —
+  // la table de teneurs est canadienne (évite les faux positifs US)
+  if (!isMetalCat && (e.section || "").toUpperCase() !== "CANADA") return null;
+  const key = entryDenomKey(e);
+  if (!key) return null;
+  const year = +((((e.date || "").match(/\d{4}/)) || [])[0] || 0);
+  if (!year) return null;
+  const order = catUp.includes("GOLD") ? ["gold", "silver"]
+              : catUp.includes("SILVER") ? ["silver", "gold"]
+              : ["silver", "gold"];
+  const isProof = /proof/i.test((e.description || "") + " " + (e.series || ""));
+  for (const metal of order) {
+    const rows = CONTENT_ROWS[metal].filter((r) =>
+      denomKey(r.denom) === key && year >= r.from && year <= r.to);
+    if (!rows.length) continue;
+    const row = rows.find((r) => r.proof === isProof) || rows[rows.length - 1];
+    return { metal, grams: row.grams };
+  }
+  return null;
+}
+
+function purePricePerG(metal) {
+  const name = metal === "gold" ? "24 K Gold" : "Pure Silver";
+  const m = SPOT && SPOT.materials && SPOT.materials.find((x) => x.name === name);
+  if (m) return m.tiers[0].individual;
+  const s = SPOT && SPOT.spot && SPOT.spot[metal === "gold" ? "XAU" : "XAG"];
+  return s ? s.cad_g : null;
+}
+
 /* ---------- Détail ---------- */
 function openDetail(e) {
   currentItem = e;
@@ -332,6 +419,7 @@ function openDetail(e) {
   $("#detail-title").textContent = entryTitle(e);
   $("#detail-ref").textContent = entryRef(e) + (e.page ? `  •  ${isCatalog ? "Catalogue" : "Guide"} p. ${e.page}` : "");
   $("#detail-price").textContent = e.price != null ? fmt(e.price) : "—";
+  updateDetailMelt();
   // référence externe : Numista, sinon mint.ca, sinon rien (bouton caché)
   const link = $("#guide-page-link");
   if (nm && nm.id) {
@@ -407,6 +495,23 @@ function openDetail(e) {
   window.scrollTo(0, 0);
 }
 
+/* affiche la valeur métal (fonte) à côté du prix du livre, si la pièce est
+   dans une table de teneurs du guide ; surligne si la fonte paie plus */
+function updateDetailMelt() {
+  const el = $("#detail-melt");
+  if (!el) return;
+  const mi = currentItem && meltInfo(currentItem);
+  const perG = mi && purePricePerG(mi.metal);
+  if (!mi || !perG) { el.hidden = true; return; }
+  const v = mi.grams * perG;
+  const book = currentItem.price;
+  el.innerHTML = `Valeur métal (fonte, cours du jour, ${mi.metal === "gold" ? "or" : "argent"} ${mi.grams} g pur) : <strong>${fmt(v)}</strong>` +
+    (book != null && v > book
+      ? ` <span class="badge-melt">LA FONTE PAIE PLUS QUE LE LIVRE</span>`
+      : "");
+  el.hidden = false;
+}
+
 function updateMargin() {
   const real = parseFloat($("#realprice").value);
   const info = $("#margin-info");
@@ -442,6 +547,7 @@ async function loadSpot() {
         initAgc();
         mergeHistory();
         renderCmp();
+        updateDetailMelt();
         drawSpotChart();
       }
     } catch {}
@@ -479,6 +585,7 @@ async function loadSpot() {
   initAgc();
   mergeHistory();
   renderCmp();
+  updateDetailMelt();
   drawSpotChart();
 }
 
@@ -658,6 +765,18 @@ const AGC_TYPES = [
   { label: "50 ¢ américain (1964 et avant)", fineness: "90 %", g: 12.5, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
   { label: "1 $ américain Morgan / Peace", fineness: "90 %", g: 26.73, fine: 0.9, mat: "0.9000 US Silver Coin (1964 or earlier)" },
   { label: "50 ¢ Kennedy 1965–1969", fineness: "40 %", g: 11.5, fine: 0.4, mat: "0.4000 US Silver Coin \"Kennedy Half Dollar\" (1965-1970)" },
+  // --- pièces d'or ---
+  { label: "Olympique 20 $ Calgary (1986–1988)", fineness: "92,5 % · 1 oz Ag", g: 34.107, fine: 0.925, mat: "Sterling Metallic" },
+  { label: "Maple Leaf argent 1 oz", fineness: "99,99 %", g: 31.11, fine: 0.9999, mat: "Pure Silver" },
+  { label: "100 $ Canada or (14K, 1976–2003)", fineness: "58,3 % · ¼ oz", g: 13.338, fine: 0.583, mat: "14 K Gold", cat: "PIÈCES EN OR" },
+  { label: "100 $ olympique Montréal 1976 (22K, boîte bois)", fineness: "91,6 % · ½ oz", g: 16.966, fine: 0.916, mat: "0.9160 Gold Bar or Coin (22k)", cat: "PIÈCES EN OR" },
+  { label: "20 $ or 1967 Centenaire", fineness: "90 % · 0,529 oz", g: 18.27, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
+  { label: "5 $ or 1912 Canada", fineness: "90 % · 0,242 oz", g: 8.36, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
+  { label: "10 $ or 1912 Canada", fineness: "90 % · 0,484 oz", g: 16.72, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
+  { label: "Maple Leaf or 1 oz", fineness: "99,99 %", g: 31.11, fine: 0.9999, mat: "24 K Gold", cat: "PIÈCES EN OR" },
+  { label: "5 $ US or (Liberty/Indian)", fineness: "90 % · 0,242 oz", g: 8.36, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
+  { label: "10 $ US or (Liberty/Indian)", fineness: "90 % · 0,484 oz", g: 16.72, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
+  { label: "20 $ US or (Saint-Gaudens/Liberty)", fineness: "90 % · 0,968 oz", g: 33.44, fine: 0.9, mat: "0.9000 Gold Bar or Coin (21.6k)", cat: "PIÈCES EN OR" },
 ];
 let agcQty = {}; // index → quantité
 let agcPct = 100; // offre en % du 100 % Kitco (persistée)
@@ -1217,7 +1336,7 @@ function sendAgcToTx() {
     const qty = parseFloat(agcQty[i]) || 0;
     const val = qty * t.g * agcPricePerG(t) * agcPct / 100;
     if (val > 0) {
-      addTxItem(`${qty} × ${t.label} (${t.fineness}) × ${agcPct} %`, "PIÈCES EN ARGENT", Math.round(val * 100) / 100);
+      addTxItem(`${qty} × ${t.label} (${t.fineness}) × ${agcPct} %`, t.cat || "PIÈCES EN ARGENT", Math.round(val * 100) / 100);
       n++;
     }
   });

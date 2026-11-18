@@ -332,6 +332,16 @@ body {
 .detail-ref { color: var(--text-dim); font-size: 13px; line-height: 1.5; }
 .detail-price { margin-top: 12px; font-size: 15px; }
 .detail-price strong { color: var(--gold); font-size: 20px; }
+.detail-melt { margin-top: 8px; font-size: 13.5px; color: var(--text-dim); }
+.detail-melt strong { color: var(--gold-light); font-size: 16px; }
+.badge-melt {
+  display: inline-block;
+  background: var(--red); color: #fff;
+  font-size: 10px; font-weight: 800; letter-spacing: .5px;
+  padding: 3px 8px; border-radius: 999px;
+  vertical-align: middle;
+  animation: popIn .3s ease both;
+}
 
 .section-title {
   color: var(--gold); font-size: 14px; letter-spacing: .5px;
