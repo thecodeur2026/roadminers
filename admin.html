@@ -36,7 +36,14 @@
     <!-- Tableau de bord -->
     <div id="adm-dash" hidden>
 
-      <h3 class="section-title" style="margin-top:0">Statut du site</h3>
+      <div class="adm-tabs">
+        <button class="adm-tab-btn active" data-tab="tab-statut">Statut</button>
+        <button class="adm-tab-btn" data-tab="tab-codes">Codes d'accès</button>
+        <button class="adm-tab-btn" data-tab="tab-achats">Achats</button>
+        <button class="adm-tab-btn" data-tab="tab-systeme">Système</button>
+      </div>
+
+      <div class="adm-tab active" id="tab-statut">
       <div class="detail-card">
         <div class="adm-status-row">
           <span id="adm-status-badge" class="verdict">…</span>
@@ -50,8 +57,9 @@
         </div>
         <p class="hint-note">Quand le site est bloqué : les visiteurs voient ce message et doivent entrer un code d'accès valide. Le tableau de bord admin reste toujours accessible.</p>
       </div>
+      </div>
 
-      <h3 class="section-title">Codes d'accès</h3>
+      <div class="adm-tab" id="tab-codes">
       <div class="detail-card">
         <div id="adm-codes"><p class="hint-note">Chargement…</p></div>
         <div class="adm-add">
@@ -67,8 +75,10 @@
         </div>
         <p class="hint-note">Un code « invité » débloque l'app pour une personne précise. Désactivez-le pour le révoquer sans le perdre, ou supprimez-le. Le dernier code admin actif ne peut pas être supprimé.</p>
       </div>
+      </div>
 
-      <h3 class="section-title">Statistiques des achats</h3>
+      <div class="adm-tab" id="tab-achats">
+      <h3 class="section-title" style="margin-top:0">Statistiques des achats</h3>
       <div class="detail-card" id="adm-tx-stats"><p class="hint-note">Chargement…</p></div>
 
       <h3 class="section-title">Transactions enregistrées</h3>
@@ -76,9 +86,11 @@
         <div id="adm-tx"><p class="hint-note">Chargement…</p></div>
         <button class="btn-outline" id="adm-tx-export" style="width:100%;margin-top:12px">&#11015; Exporter le registre (CSV)</button>
       </div>
+      </div>
 
-      <h3 class="section-title">Système</h3>
+      <div class="adm-tab" id="tab-systeme">
       <div class="detail-card" id="adm-stats"><p class="hint-note">Chargement…</p></div>
+      </div>
 
       <button class="btn-outline" id="adm-logout" style="width:100%;margin:20px 0">Se déconnecter</button>
     </div>

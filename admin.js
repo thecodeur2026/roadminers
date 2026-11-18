@@ -339,6 +339,13 @@ function initTheme() {
 
 /* ---------- Init ---------- */
 initTheme();
+document.querySelectorAll(".adm-tab-btn").forEach((b) =>
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".adm-tab-btn").forEach((x) =>
+      x.classList.toggle("active", x === b));
+    document.querySelectorAll(".adm-tab").forEach((p) =>
+      p.classList.toggle("active", p.id === b.dataset.tab));
+  }));
 $("#adm-login-btn").addEventListener("click", login);
 $("#adm-code").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
 $("#adm-toggle").addEventListener("click", () => {
