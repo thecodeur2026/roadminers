@@ -49,7 +49,11 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   (window.print, #invoice), enregistrement Supabase via RPC
   `save_transaction` (code employé requis). Table `transactions` illisible
   publiquement ; liste admin via `admin_list_transactions` (admin.html).
-  Schéma : `supabase/transactions.sql` (exécuté).
+  Schéma : `supabase/transactions.sql` (exécuté). L'admin affiche en plus :
+  statistiques des achats (jour/7 j/30 j, par employé, par catégorie),
+  détail complet d'une transaction (photos incluses) et export CSV du
+  registre (`admin_list_transactions` inclut client+items,
+  `admin_get_transaction` pour le détail).
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
 

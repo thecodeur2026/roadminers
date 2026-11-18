@@ -163,26 +163,127 @@ async function addCode() {
   }
 }
 
-/* ---------- Transactions ---------- */
+/* ---------- Transactions + statistiques + export ---------- */
+let TXS = [];
+
+const money2 = (n) => Number(n || 0).toLocaleString("fr-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
+const txDate = (t) => new Date(t.created_at);
+
+function renderTxStats() {
+  const box = $("#adm-tx-stats");
+  if (!TXS.length) { box.innerHTML = `<p class="hint-note">Aucune transaction pour l'instant.</p>`; return; }
+  const now = Date.now(), D = 86400000;
+  const since = (ms) => TXS.filter((t) => now - txDate(t).getTime() < ms);
+  const sum = (arr) => arr.reduce((s, t) => s + Number(t.total || 0), 0);
+  const today = since(D), week = since(7 * D), month = since(30 * D);
+  let html = `
+    <div class="tx-stat-grid">
+      <div class="tx-stat"><small>AUJOURD'HUI</small><strong>${money2(sum(today))}</strong><span>${today.length} transaction(s)</span></div>
+      <div class="tx-stat"><small>7 JOURS</small><strong>${money2(sum(week))}</strong><span>${week.length} transaction(s)</span></div>
+      <div class="tx-stat"><small>30 JOURS</small><strong>${money2(sum(month))}</strong><span>${month.length} transaction(s)</span></div>
+      <div class="tx-stat"><small>TOTAL</small><strong>${money2(sum(TXS))}</strong><span>${TXS.length} au registre</span></div>
+    </div>`;
+  const perEmp = {};
+  for (const t of TXS) {
+    const k = t.seller_code || "—";
+    perEmp[k] = perEmp[k] || { n: 0, sum: 0 };
+    perEmp[k].n++;
+    perEmp[k].sum += Number(t.total || 0);
+  }
+  html += `<div class="carac-side-title" style="margin-top:14px">PAR EMPLOYÉ</div>` +
+    Object.entries(perEmp).sort((a, b) => b[1].sum - a[1].sum).map(([k, v]) =>
+      `<div class="carac-row"><span class="carac-k">${escapeHtml(k)} (${v.n})</span><span class="carac-v">${money2(v.sum)}</span></div>`).join("");
+  const perCat = {};
+  for (const t of TXS) for (const it of (t.items || [])) {
+    perCat[it.cat] = (perCat[it.cat] || 0) + Number(it.amount || 0);
+  }
+  const cats = Object.entries(perCat).sort((a, b) => b[1] - a[1]);
+  if (cats.length) {
+    html += `<div class="carac-side-title" style="margin-top:14px">PAR CATÉGORIE</div>` +
+      cats.map(([k, v]) =>
+        `<div class="carac-row"><span class="carac-k">${escapeHtml(k)}</span><span class="carac-v">${money2(v)}</span></div>`).join("");
+  }
+  box.innerHTML = html;
+}
+
 async function loadTx() {
   const box = $("#adm-tx");
   try {
-    const txs = await rpc("admin_list_transactions", { p_admin: ADMIN });
-    if (!txs || !txs.length) {
+    TXS = (await rpc("admin_list_transactions", { p_admin: ADMIN })) || [];
+    renderTxStats();
+    if (!TXS.length) {
       box.innerHTML = `<p class="hint-note">Aucune transaction enregistrée.</p>`;
       return;
     }
-    box.innerHTML = txs.map((t) => `
-      <div class="code-row">
+    box.innerHTML = "";
+    TXS.forEach((t, i) => {
+      const row = document.createElement("div");
+      row.className = "code-row tx-row-link";
+      row.innerHTML = `
         <div class="code-main">
-          <strong style="letter-spacing:0">${escapeHtml(t.client_nom || "—")}</strong>
-          <small>${new Date(t.created_at).toLocaleString("fr-CA")} · ${escapeHtml(t.seller_code)} · ${t.nb_items} article(s) · ${t.nb_photos} photo(s)</small>
+          <strong style="letter-spacing:0">${escapeHtml((t.client && t.client.nom) || "—")}</strong>
+          <small>${txDate(t).toLocaleString("fr-CA")} · ${escapeHtml(t.seller_code)} · ${(t.items || []).length} article(s) · ${t.nb_photos} photo(s)</small>
         </div>
-        <span class="agc-sub">${Number(t.total).toLocaleString("fr-CA", { minimumFractionDigits: 2 })} $</span>
-      </div>`).join("");
+        <span class="agc-sub">${money2(t.total)}</span>`;
+      row.addEventListener("click", () => openTxModal(i));
+      box.appendChild(row);
+    });
   } catch {
     box.innerHTML = `<p class="hint-note">Erreur de chargement.</p>`;
   }
+}
+
+async function openTxModal(i) {
+  const t = TXS[i];
+  const modal = $("#tx-modal");
+  const body = $("#tx-modal-body");
+  body.innerHTML = `<p class="hint-note">Chargement…</p>`;
+  modal.hidden = false;
+  let full = t;
+  try {
+    const rows = await rpc("admin_get_transaction", { p_admin: ADMIN, p_id: t.id });
+    if (rows && rows[0]) full = rows[0];
+  } catch {}
+  const c = full.client || {};
+  body.innerHTML = `
+    <div class="carac-row"><span class="carac-k">Date</span><span class="carac-v">${txDate(full).toLocaleString("fr-CA")}</span></div>
+    <div class="carac-row"><span class="carac-k">Employé</span><span class="carac-v">${escapeHtml(full.seller_code)}</span></div>
+    <div class="carac-side"><div class="carac-side-title">CLIENT</div>
+      <p>${escapeHtml(c.nom || "—")}<br>
+      ${escapeHtml(c.tel || "")}${c.naissance ? " · né(e) le " + escapeHtml(c.naissance) : ""}<br>
+      ${c.idnum ? "Pièce d'identité : " + escapeHtml(c.idnum) + "<br>" : ""}
+      ${escapeHtml(c.adresse || "")}${c.sac ? " · Sac " + escapeHtml(c.sac) : ""}</p>
+    </div>
+    <div class="carac-side"><div class="carac-side-title">ARTICLES</div>
+      ${(full.items || []).map((it) => `
+        <div class="carac-row"><span class="carac-k" style="flex-shrink:1">${escapeHtml(it.label)}<br><small>${escapeHtml(it.cat)}</small></span><span class="carac-v">${money2(it.amount)}</span></div>`).join("")}
+    </div>
+    <p class="tx-total">TOTAL : <strong>${money2(full.total)}</strong></p>
+    ${(full.photos || []).length ? `<div class="inv-photos">${full.photos.map((p) => `<img src="${p}" style="border-color:#333">`).join("")}</div>` : ""}`;
+}
+
+function exportTxCsv() {
+  if (!TXS.length) { toast("Aucune transaction à exporter"); return; }
+  const esc = (s) => `"${String(s ?? "").replace(/"/g, '""')}"`;
+  const head = ["Date", "Employé", "Nom client", "Téléphone", "Naissance",
+    "Pièce d'identité", "Adresse", "Langue", "No de sac", "Articles", "Total"];
+  const lines = [head.map(esc).join(";")];
+  for (const t of TXS) {
+    const c = t.client || {};
+    const arts = (t.items || [])
+      .map((it) => `${it.label} [${it.cat}] ${Number(it.amount).toFixed(2)}$`)
+      .join(" | ");
+    lines.push([
+      txDate(t).toLocaleString("fr-CA"), t.seller_code, c.nom, c.tel, c.naissance,
+      c.idnum, c.adresse, c.langue, c.sac, arts, Number(t.total).toFixed(2),
+    ].map(esc).join(";"));
+  }
+  const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "registre-achats-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  toast("Registre exporté (" + TXS.length + " transactions)");
 }
 
 /* ---------- Système ---------- */
@@ -258,6 +359,11 @@ $("#adm-save-msg").addEventListener("click", async () => {
   } catch { toast("Erreur réseau"); }
 });
 $("#adm-add").addEventListener("click", addCode);
+$("#adm-tx-export").addEventListener("click", exportTxCsv);
+$("#tx-modal-close").addEventListener("click", () => { $("#tx-modal").hidden = true; });
+$("#tx-modal").addEventListener("click", (e) => {
+  if (e.target.id === "tx-modal") $("#tx-modal").hidden = true;
+});
 $("#adm-logout").addEventListener("click", () => {
   sessionStorage.removeItem("roadminer_admin");
   ADMIN = "";

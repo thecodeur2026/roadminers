@@ -962,6 +962,24 @@ body {
 .inv-sign { display: flex; justify-content: space-between; margin-top: 40px; }
 .inv-sign div { width: 45%; border-top: 1px solid #111; padding-top: 6px; font-size: 11px; text-align: center; }
 
+/* ----- Stats admin (transactions) ----- */
+.tx-stat-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.tx-stat {
+  background: var(--bg-raised);
+  border: 1px solid #2c2c2c;
+  border-radius: 10px;
+  padding: 12px;
+}
+.tx-stat small { color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+.tx-stat strong { display: block; font-size: 20px; color: var(--text); margin: 4px 0 2px; }
+.tx-stat span { color: var(--text-dim); font-size: 11px; }
+.tx-row-link { cursor: pointer; transition: background .15s ease; }
+.tx-row-link:hover { background: rgba(212,175,55,.06); }
+[data-theme="light"] .tx-stat { background: #fff; border-color: #e0d8c4; }
+
 /* ----- Toast ----- */
 .toast {
   position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);

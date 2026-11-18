@@ -32,8 +32,9 @@ begin
   return true;
 end $$;
 
--- liste des transactions (admin) — sans les photos (trop lourdes)
-create or replace function admin_list_transactions(p_admin text)
+-- liste des transactions (admin) — avec client et articles, sans les photos
+drop function if exists admin_list_transactions(text);
+create function admin_list_transactions(p_admin text)
 returns json language plpgsql security definer set search_path = public as $$
 begin
   if not exists (select 1 from access_codes
@@ -41,13 +42,23 @@ begin
     return '[]'::json;
   end if;
   return (select coalesce(json_agg(row_to_json(t)), '[]'::json) from (
-    select id, created_at, seller_code,
-           client->>'nom' as client_nom,
-           jsonb_array_length(items) as nb_items,
-           jsonb_array_length(photos) as nb_photos,
-           total
-      from transactions order by created_at desc limit 100) t);
+    select id, created_at, seller_code, client, items,
+           jsonb_array_length(photos) as nb_photos, total
+      from transactions order by created_at desc limit 500) t);
+end $$;
+
+-- détail complet d'une transaction, photos incluses (admin)
+create or replace function admin_get_transaction(p_admin text, p_id uuid)
+returns json language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from access_codes
+                 where code = upper(trim(p_admin)) and role = 'admin' and active) then
+    return 'null'::json;
+  end if;
+  return (select coalesce(json_agg(row_to_json(t)), '[]'::json) from (
+    select * from transactions where id = p_id) t);
 end $$;
 
 grant execute on function save_transaction(text, jsonb, jsonb, jsonb, numeric) to anon;
 grant execute on function admin_list_transactions(text) to anon;
+grant execute on function admin_get_transaction(text, uuid) to anon;

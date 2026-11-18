@@ -68,8 +68,14 @@
         <p class="hint-note">Un code « invité » débloque l'app pour une personne précise. Désactivez-le pour le révoquer sans le perdre, ou supprimez-le. Le dernier code admin actif ne peut pas être supprimé.</p>
       </div>
 
+      <h3 class="section-title">Statistiques des achats</h3>
+      <div class="detail-card" id="adm-tx-stats"><p class="hint-note">Chargement…</p></div>
+
       <h3 class="section-title">Transactions enregistrées</h3>
-      <div class="detail-card" id="adm-tx"><p class="hint-note">Chargement…</p></div>
+      <div class="detail-card">
+        <div id="adm-tx"><p class="hint-note">Chargement…</p></div>
+        <button class="btn-outline" id="adm-tx-export" style="width:100%;margin-top:12px">&#11015; Exporter le registre (CSV)</button>
+      </div>
 
       <h3 class="section-title">Système</h3>
       <div class="detail-card" id="adm-stats"><p class="hint-note">Chargement…</p></div>
@@ -79,6 +85,17 @@
 
   </section>
 </main>
+
+<!-- ============ MODAL DÉTAIL TRANSACTION ============ -->
+<div id="tx-modal" class="blocker" hidden>
+  <div class="blocker-panel" style="max-width:520px;text-align:left;max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <strong style="color:var(--gold)">Détail de la transaction</strong>
+      <button id="tx-modal-close" class="row-del" aria-label="Fermer">&times;</button>
+    </div>
+    <div id="tx-modal-body"></div>
+  </div>
+</div>
 
 <div id="toast" class="toast" hidden></div>
 
