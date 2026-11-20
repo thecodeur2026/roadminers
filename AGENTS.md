@@ -48,10 +48,15 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   `RM-ADMIN-2026`. Blocage de NIVEAU APPLICATIF : l'API Supabase reste publique.
 - Historique local des évaluations (localStorage)
 - Onglet « Transaction » (achat comptoir) : fiche client (nom, tél, naissance,
-  pièce d'identité, adresse, langue, no de sac), articles alimentés en 1 clic
+  pièce d'identité, adresse, langue, no de sac, **événement** auto-rempli
+  depuis le voyage du jour), articles alimentés en 1 clic
   depuis la fonte / le lot de pièces / la valeur faciale / la fiche pièce
   (avec % et montants), photos des articles (5 max), totaux par catégorie
-  (mêmes catégories que le formulaire Prextra), facture imprimable
+  (mêmes catégories que le formulaire Prextra), facture imprimable AU FORMAT
+  DU REÇU RÉEL (ACHATS COMPTOIR : catégories dans l'ordre, total,
+  code-barres Code 39 généré sur canvas, nom de l'employé via RPC
+  `code_label`, texte légal, permis 122665, formulaire de résolution art. 59
+  LPC complet) + annexe détaillée des articles
   (window.print, #invoice), enregistrement Supabase via RPC
   `save_transaction` (code employé requis). Table `transactions` illisible
   publiquement ; liste admin via `admin_list_transactions` (admin.html).

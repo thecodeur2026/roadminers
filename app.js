@@ -1433,43 +1433,160 @@ async function saveTx() {
   } catch { toast("Erreur réseau — transaction NON enregistrée"); }
 }
 
-function printTx() {
+/* ---------- Facture (format reçu Prextra) ---------- */
+const INV_CATS = [ // [catégorie interne, étiquette reçu] — ordre du reçu réel
+  ["CARTE DE SPORT / NON-SPORT", "CARTE DE SPORT/NON-SPORT"],
+  ["MONTRES", "MONTRES"],
+  ["MONNAIE ET BILLET DE COLLECTION", "MONNAIE ET BILLET DE COLL"],
+  ["BIJOUX EN OR", "BIJOUX EN OR"],
+  ["OBJETS MILITAIRE", "OBJETS MILLITAIRE"],
+  ["JOUETS / PUBLICITÉS", "JOUETS/PUBLICITES"],
+  ["DIAMANTS", "DIAMANTS"],
+  ["AUTRES", "AUTRES"],
+  ["PIÈCES EN OR", "PIECES EN OR"],
+  ["BIJUX / OBJETS EN ARGENT", "BIJOUX/OBJETS EN ARGENT"],
+  ["PIÈCES EN ARGENT", "PIECES EN ARGENT"],
+  ["TABLEAUX", "TABLEAUX"],
+];
+
+/* Code 39 (chiffres + *) dessiné sur canvas → image imprimable */
+const C39 = {
+  "0": "000110100", "1": "100100001", "2": "001100001", "3": "101100000",
+  "4": "000110001", "5": "100110000", "6": "001110000", "7": "000100101",
+  "8": "100100100", "9": "001100100", "*": "010010100",
+};
+
+function barcodeDataURL(text) {
+  const seq = "*" + String(text).replace(/[^0-9]/g, "") + "*";
+  const narrow = 3, wide = 9, gap = 3, h = 56;
+  let w = 20;
+  for (const ch of seq) for (const b of (C39[ch] || "")) w += (b === "1" ? wide : narrow);
+  w += gap * seq.length;
+  const cv = document.createElement("canvas");
+  cv.width = w;
+  cv.height = h + 22;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h + 22);
+  ctx.fillStyle = "#000";
+  let x = 10;
+  for (const ch of seq) {
+    const pat = C39[ch] || "";
+    for (let i = 0; i < pat.length; i++) {
+      const wd = pat[i] === "1" ? wide : narrow;
+      if (i % 2 === 0) ctx.fillRect(x, 4, wd, h);
+      x += wd;
+    }
+    x += gap;
+  }
+  ctx.font = "14px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(seq, w / 2, h + 18);
+  return cv.toDataURL("image/png");
+}
+
+async function empLabel(code) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/code_label`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json" },
+      body: JSON.stringify({ p_code: code }),
+    });
+    const label = await res.json();
+    return label || code;
+  } catch { return code; }
+}
+
+/* remplit « Événement » depuis le voyage du jour de l'employé */
+async function fillTxEvent() {
+  const ev = $("#tx-event");
+  if (!ev || ev.value.trim()) return;
+  let code = "";
+  try { code = localStorage.getItem("roadminer_access") || ""; } catch {}
+  if (!code) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_trips`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json" },
+      body: JSON.stringify({ p_code: code }),
+    });
+    const trips = await res.json();
+    const mine = (trips || []).find((t) => (t.employees || []).some((e) => e.code === code.toUpperCase()));
+    if (!mine) return;
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const day = (mine.days || []).find((d) => d.date === todayStr);
+    if (!day) return;
+    const city = (day.event && day.event.city) || (day.hotel && day.hotel.city) || "";
+    const team = (mine.employees || [])
+      .map((e) => (e.label || e.code).split(" ").map((w) => w[0]).join("") + ".")
+      .join("/");
+    const dstr = now.toLocaleDateString("fr-CA", { day: "numeric", month: "short" }).toUpperCase().replace(/\./g, "");
+    ev.value = `${city} - ${dstr} - ${team}`.toUpperCase();
+  } catch {}
+}
+
+async function printTx() {
   const inv = $("#invoice");
   const now = new Date();
   const sums = {};
   for (const it of txItems) sums[it.cat] = (sums[it.cat] || 0) + it.amount;
+  const total = txTotal();
+  const num = String(Math.floor(Date.now() / 1000) % 100000).padStart(5, "0");
+  const empCode = ($("#tx-emp").value.trim() || localStorage.getItem("roadminer_access") || "").toUpperCase();
+  const emp = empCode ? (await empLabel(empCode)).toUpperCase() : "—";
+  const dateStr = `${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")}/${now.getFullYear()} ${now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true })}`;
   inv.innerHTML = `
-    <div class="inv-head">
-      <h1>ROAD MINERS</h1>
-      <p>TRADE • VALUE • SECURITY</p>
-      <h2>Facture d'achat comptoir</h2>
-      <p>Date : ${now.toLocaleDateString("fr-CA")} ${now.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</p>
-    </div>
-    <div class="inv-block">
-      <strong>Client</strong><br>
-      Nom : ${escapeHtml($("#tx-nom").value.trim())}<br>
-      Téléphone : ${escapeHtml($("#tx-tel").value.trim())} &nbsp;•&nbsp;
-      Naissance : ${escapeHtml($("#tx-naissance").value)}<br>
-      No pièce d'identité : ${escapeHtml($("#tx-idnum").value.trim())}<br>
-      Adresse : ${escapeHtml($("#tx-adresse").value.trim())} &nbsp;•&nbsp;
-      Langue : ${escapeHtml($("#tx-langue").value)} &nbsp;•&nbsp;
-      No de sac : ${escapeHtml($("#tx-sac").value.trim())}
-    </div>
-    <table class="inv-table">
-      <thead><tr><th>Article</th><th>Catégorie</th><th>Montant</th></tr></thead>
-      <tbody>
-        ${txItems.map((it) => `<tr><td>${escapeHtml(it.label)}</td><td>${escapeHtml(it.cat)}</td><td>${fmt(it.amount)}</td></tr>`).join("")}
-      </tbody>
-    </table>
-    <div class="inv-block">
-      ${Object.keys(sums).map((c) => `${c} : <strong>${fmt(sums[c])}</strong>`).join(" &nbsp;•&nbsp; ")}
-    </div>
-    <p class="inv-total">TOTAL PAYÉ : ${fmt(txTotal())}</p>
-    ${txPhotos.length ? `<div class="inv-photos">${txPhotos.map((p) => `<img src="${p}">`).join("")}</div>` : ""}
-    <p class="inv-legal">Encan International n'est aucunement responsable d'infractions à la loi sur l'impôt. Il est de votre devoir de déclarer tout gain en capital. Le client déclare être le propriétaire de la marchandise vendue ayant acquis celle-ci au courant de transactions légales.</p>
-    <div class="inv-sign">
-      <div>Signature du client</div>
-      <div>Signature de l'employé</div>
+    <div class="rcp">
+      <div class="rcp-c">************** ACHATS COMPTOIR ****************</div>
+      <p>${dateStr}<br>
+      Nom: ${escapeHtml($("#tx-nom").value.trim())}<br>
+      Tel.: ${escapeHtml($("#tx-tel").value.trim())}<br>
+      Preuve d'identite: ${escapeHtml($("#tx-idnum").value.trim())}<br>
+      Adresse client: ${escapeHtml($("#tx-adresse").value.trim())}<br>
+      Evenement: ${escapeHtml($("#tx-event").value.trim())}</p>
+      <table class="rcp-table">
+        ${INV_CATS.map(([cat, label]) =>
+          `<tr><td>${label}</td><td>${(sums[cat] || 0).toFixed(2)}$</td></tr>`).join("")}
+      </table>
+      <div class="rcp-total">Total&nbsp;&nbsp;&nbsp;&nbsp;${total.toFixed(2)}$</div>
+      <img class="rcp-barcode" src="${barcodeDataURL(num)}" alt="code-barres ${num}">
+      <p>${escapeHtml(emp)}<br>
+      Encan International n'est aucunement responsable d'infrac-
+      tions a la loi sur l'impot. Il est de votre devoir de
+      declarer tout gain en capital. Le client declare etre le
+      proprietaire de la marchandise vendue ayant acquis celle-ci
+      au courant de transactions legales.</p>
+      <p>Signature:____________________</p>
+      <p>No de permis de commercant itinerant: 122665</p>
+      <div class="rcp-c">*****************************************</div>
+      ${txItems.length ? `
+      <p style="margin-top:10px"><strong>ANNEXE — DETAIL DES ARTICLES</strong></p>
+      <table class="rcp-table">
+        ${txItems.map((it) => `<tr><td>${escapeHtml(it.label)}</td><td>${it.amount.toFixed(2)}$</td></tr>`).join("")}
+      </table>` : ""}
+      ${txPhotos.length ? `<div class="inv-photos">${txPhotos.map((p) => `<img src="${p}">`).join("")}</div>` : ""}
+      <p style="margin-top:12px"><strong>FORMULAIRE DE RESOLUTION</strong><br>Commercant<br><br>
+      9494-3461 Quebec inc.<br>
+      57 route du President-Kennedy, Levis (centre-ville)<br>
+      Quebec, G6V 6C7<br><br>
+      Telephone: 418-531-0655<br><br>
+      Email: info@internationalauction.ca<br><br>
+      A COMPLETER PAR LE CONSOMMATEUR<br><br>
+      DATE : ....................... (date d'envoi du formulaire)
+      En vertu de l'article 59 de la Loi sur la protection du consommateur,<br><br>
+      j'annule le contrat no ....................... (numero du contrat, s'il est indique)<br><br>
+      conclu le ....................... (date de la conclusion du contrat)<br><br>
+      a : ....................... (adresse ou le client a signe le contrat)<br><br>
+      Nom:<br>
+      No telephone :<br>
+      No telecopieur:<br>
+      Email:<br>
+      Adresse:<br><br>
+      Signature:</p>
+      <div class="rcp-c">***************************************************</div>
     </div>`;
   window.print();
 }
@@ -1478,7 +1595,7 @@ function resetTx() {
   if (txItems.length && !confirm("Vider la transaction en cours ?")) return;
   txItems = [];
   txPhotos = [];
-  for (const id of ["tx-nom", "tx-tel", "tx-naissance", "tx-idnum", "tx-adresse", "tx-sac"]) {
+  for (const id of ["tx-nom", "tx-tel", "tx-naissance", "tx-idnum", "tx-adresse", "tx-sac", "tx-event"]) {
     $("#" + id).value = "";
   }
   $("#tx-langue").value = "Français";
@@ -1715,6 +1832,7 @@ function showView(id) {
     b.classList.toggle("active", b.dataset.view === id));
   if (id === "view-history") renderHistory();
   if (id === "view-trip") loadMyTrips();
+  if (id === "view-tx") fillTxEvent();
 }
 
 /* ---------- Événements ---------- */
