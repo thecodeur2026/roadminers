@@ -71,15 +71,25 @@
         <div class="custom-pct" id="custom-pct-zone" hidden>
           <label for="custom-pct">% au choix sur le total 100 % Kitco :</label>
           <div class="custom-pct-row">
-            <input type="number" id="custom-pct" min="0" max="100" step="0.5" placeholder="ex. 42">
+            <input type="number" id="custom-pct" min="0" step="0.5" placeholder="ex. 42">
             <span class="custom-pct-sign">%</span>
             <strong id="custom-pct-val">—</strong>
+            <small id="custom-pct-g" class="perg"></small>
           </div>
+          <p id="custom-pct-warn" class="warn-red" hidden>VOUS NE POUVEZ PAS ACHETER À CE PRIX.</p>
           <label for="custom-paid" style="margin-top:10px">Montant payé au total ($) — pourcentage réel :</label>
           <div class="custom-pct-row">
             <input type="number" id="custom-paid" min="0" step="0.01" placeholder="ex. 850">
             <span class="custom-pct-sign">$</span>
             <strong id="custom-paid-pct">—</strong>
+            <small id="custom-paid-g" class="perg"></small>
+          </div>
+          <p id="custom-paid-warn" class="warn-red" hidden>VOUS NE POUVEZ PAS ACHETER À CE PRIX.</p>
+          <label for="melt-ag-weight" style="margin-top:10px">Poids d'argent dans le lot (g) — optionnel, s'il y en a beaucoup :</label>
+          <div class="custom-pct-row">
+            <input type="number" id="melt-ag-weight" min="0" step="0.01" placeholder="grammes d'argent">
+            <span class="custom-pct-sign">g</span>
+            <strong id="melt-ag-g">—</strong>
           </div>
         </div>
         <div class="tiers" id="melt-tiers"></div>
@@ -100,7 +110,8 @@
           <span class="custom-pct-sign">&times;</span>
           <strong id="face-mult-result">—</strong>
         </div>
-        <p class="hint-note">Prix = valeur faciale × multiplicateur (ex. « 8 fois la face »).</p>
+        <p class="hint-note">Prix = valeur faciale × multiplicateur (ex. « 8 fois la face »). Maximum : 65 % de la valeur métal — <span id="face-max">—</span>.</p>
+        <p id="face-warn" class="warn-red" hidden>ATTENTION !</p>
         <button class="btn-outline" id="face-to-tx" style="width:100%;margin-top:8px" hidden>&rarr; Envoyer vers la transaction</button>
       </div>
 

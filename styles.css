@@ -924,6 +924,24 @@ body {
 [data-theme="light"] .code-row { border-bottom-color: #ece5d2; }
 [data-theme="light"] .carac-row { border-bottom-color: #ece5d2; }
 
+/* ----- Alertes prix (limites d'achat) ----- */
+.red { color: var(--red) !important; }
+.warn-red {
+  color: var(--red);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: .5px;
+  margin: 8px 0 0;
+  animation: popIn .3s ease both;
+}
+.perg {
+  color: var(--gold-light);
+  font-weight: 700;
+  font-size: 12px;
+  align-self: center;
+  white-space: nowrap;
+}
+
 /* ----- Transaction (achat comptoir) ----- */
 .tx-grid { display: flex; flex-direction: column; gap: 8px; }
 .tx-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

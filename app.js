@@ -586,6 +586,9 @@ async function loadSpot() {
   mergeHistory();
   renderCmp();
   updateDetailMelt();
+  // recalcule la règle des 65 % (valeur faciale) avec les nouveaux cours
+  const fg = $("#face-grams");
+  if (fg && fg.value) fg.dispatchEvent(new Event("input"));
   drawSpotChart();
 }
 
@@ -1037,20 +1040,49 @@ function updateMeltV2() {
 /* % personnalisé — mémorisé entre les sessions */
 let customPctBase = 0;
 
+/* grammes d'or du lot (matériaux or seulement — l'argent est ignoré ici) */
+function goldGrams() {
+  if (!SPOT || !SPOT.materials) return 0;
+  let g = 0;
+  for (const row of meltRows) {
+    const m = SPOT.materials[row.mat >= 0 ? row.mat : defaultMatIndex()] || {};
+    if (meltCatFor(m.name || "") === "BIJOUX EN OR") g += parseFloat(row.grams) || 0;
+  }
+  return g;
+}
+
 function updateCustomPct(base) {
   customPctBase = base;
   const inp = $("#custom-pct");
   const out = $("#custom-pct-val");
   if (!inp || !out) return;
+  const g = goldGrams();
+  // % au choix → montant + prix/gramme ; rouge au-delà de 100 %
   const p = parseFloat(inp.value);
-  out.textContent = (!isNaN(p) && base > 0) ? fmt(base * p / 100) : "—";
-  // montant payé au total → pourcentage réel du 100 % Kitco
+  const amt = (!isNaN(p) && base > 0) ? base * p / 100 : null;
+  out.textContent = amt != null ? fmt(amt) : "—";
+  out.classList.toggle("red", !isNaN(p) && p > 100);
+  $("#custom-pct-g").textContent = (amt != null && g > 0) ? `${fmt(amt / g)}/g` : "";
+  $("#custom-pct-warn").hidden = !(!isNaN(p) && p > 100);
+  // montant payé → % réel + prix/gramme (payé ÷ poids d'or) ; rouge au-delà de 100 %
   const paidInp = $("#custom-paid");
   const paidOut = $("#custom-paid-pct");
+  const v = paidInp ? parseFloat(paidInp.value) : NaN;
+  const paidOk = !isNaN(v) && v > 0 && base > 0;
+  const realPct = paidOk ? (v / base) * 100 : null;
   if (paidInp && paidOut) {
-    const v = parseFloat(paidInp.value);
-    paidOut.textContent = (!isNaN(v) && v > 0 && base > 0)
-      ? `= ${(v / base * 100).toFixed(1)} %`
+    paidOut.textContent = realPct != null ? `= ${realPct.toFixed(1)} %` : "—";
+    paidOut.classList.toggle("red", realPct != null && realPct > 100);
+    $("#custom-paid-g").textContent = (paidOk && g > 0) ? `${fmt(v / g)}/g` : "";
+    $("#custom-paid-warn").hidden = !(realPct != null && realPct > 100);
+  }
+  // poids d'argent entré → prix/gramme de l'argent (payé ÷ poids d'argent)
+  const agInp = $("#melt-ag-weight");
+  const agW = agInp ? parseFloat(agInp.value) : NaN;
+  const agOut = $("#melt-ag-g");
+  if (agOut) {
+    agOut.textContent = (!isNaN(agW) && agW > 0 && paidOk)
+      ? `${fmt(v / agW)}/g`
       : "—";
   }
 }
@@ -1877,6 +1909,12 @@ function bindEvents() {
     try { localStorage.setItem("roadminer_custompaid", customPaid.value); } catch {}
     updateCustomPct(customPctBase);
   });
+  const agWeight = $("#melt-ag-weight");
+  try { agWeight.value = localStorage.getItem("roadminer_meltagweight") || ""; } catch {}
+  agWeight.addEventListener("input", () => {
+    try { localStorage.setItem("roadminer_meltagweight", agWeight.value); } catch {}
+    updateCustomPct(customPctBase);
+  });
 
   // valeur faciale : poids total (g) ÷ 23,32 g = valeur faciale ($) ; × multiplicateur = prix
   const faceInp = $("#face-grams");
@@ -1889,10 +1927,18 @@ function bindEvents() {
       ? face.toLocaleString("fr-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $ facial"
       : "—";
     const m = parseFloat(faceMult.value);
-    $("#face-mult-result").textContent = (face != null && !isNaN(m) && m > 0)
-      ? fmt(face * m)
-      : "—";
-    $("#face-to-tx").hidden = !(face != null && !isNaN(m) && m > 0);
+    const price = (face != null && !isNaN(m) && m > 0) ? face * m : null;
+    // règle maison : ne pas dépasser 65 % de la valeur métal (argent 80 %)
+    const perG = purePricePerG("silver");
+    const melt = (g > 0 && perG) ? g * 0.8 * perG : null;
+    const max = melt != null ? 0.65 * melt : null;
+    $("#face-max").textContent = max != null ? fmt(max) : "—";
+    const warn = price != null && max != null && price > max;
+    const out = $("#face-mult-result");
+    out.textContent = price != null ? fmt(price) : "—";
+    out.classList.toggle("red", warn);
+    $("#face-warn").hidden = !warn;
+    $("#face-to-tx").hidden = !(price != null && !warn);
   };
   faceInp.addEventListener("input", updateFace);
   faceMult.addEventListener("input", () => {
