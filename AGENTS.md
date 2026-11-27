@@ -74,8 +74,9 @@ d'or/monnaies/articles usagés. Zéro framework, zéro build : HTML/CSS/JS vanil
   cliquables → itinéraire Google Maps. Admin : onglet « Voyages » en
   dépliants, bouton « Modifier l'itinéraire » (employé + coéquipier — un
   employé assigné disparaît des listes des autres voyages). Table `trips`
-  (illisible publiquement), RPC admin_save/list/delete_trip. Schéma + démo
-  Alberta (Luc/Karim, codes LUC-2026 / KARIM-2026) : `supabase/trips.sql`.
+  (illisible publiquement), RPC admin_save/list/delete_trip. Schéma :
+  `supabase/trips.sql`. Tournée en cours : Saskatchewan pour KARIM-2026
+  (27 nov. → 6 déc. 2026, 10 jours).
 - Badge vert « ON PREND » (prix d'achat du guide) / badge or « VALEUR CATALOGUE »
 - Hors-ligne via service worker
 
